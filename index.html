@@ -113,7 +113,7 @@ button.warn{border-color:#ff9a7a;color:#ffb49c}
   <p>Tuman bosgan o’rmonda 5 ta yorug’lik toshini toping. Hammasi yig’ilganda chiqish darvozasi ochiladi.</p>
   <button id="go">Boshlash</button>
   <button id="set2" class="ghost" type="button">Sozlamalar</button>
-  <p class="small">Kompyuter: WASD bilan yuring, sichqonchani bosib surib qarang, M — ovozni o’chirish, Esc — sozlamalar. Telefon: chapda harakat, o’ngda qarash.</p>
+  <p class="small">Kompyuter: WASD bilan yuring, R — yomg’irni sinash, sichqonchani bosib surib qarang, M — ovozni o’chirish, Esc — sozlamalar. Telefon: chapda harakat, o’ngda qarash.</p>
 </div>
 <div class="ov hide" id="win">
   <h1>O’rmondan chiqdingiz</h1>
@@ -173,9 +173,9 @@ function saveSoon(){clearTimeout(saveTm);saveTm=setTimeout(saveNow,300);}
 // Grafika sifati: past / o’rta / yuqori
 const LOW=!!(window.matchMedia&&matchMedia("(pointer:coarse)").matches); // telefon = o’rta sifatdan boshlanadi
 const QUAL={
-  low:{pr:1,tree:0.45,deer:2,rab:3,fox:1,bird:3,fly:6,stars:150,fog:1.6,cull:30},
-  mid:{pr:1.25,tree:0.8,deer:3,rab:4,fox:1,bird:4,fly:12,stars:300,fog:1.15,cull:38},
-  high:{pr:1.5,tree:1,deer:4,rab:6,fox:2,bird:6,fly:20,stars:450,fog:1,cull:55}
+  low:{rain:120,pr:1,tree:0.45,deer:2,rab:3,fox:1,bird:3,fly:6,stars:150,fog:1.6,cull:30},
+  mid:{rain:220,pr:1.25,tree:0.8,deer:3,rab:4,fox:1,bird:4,fly:12,stars:300,fog:1.15,cull:38},
+  high:{rain:380,pr:1.5,tree:1,deer:4,rab:6,fox:2,bird:6,fly:20,stars:450,fog:1,cull:55}
 };
 let quality=st.q||(LOW?"mid":"high"),Q=QUAL[quality],CULL=Q.cull,fogMul=Q.fog,flN=Q.fly;
 const QN={d:Q.deer,r:Q.rab,f:Q.fox};
@@ -359,7 +359,7 @@ function initAudio(){
     const dl=AC.createDelay(1),fb=AC.createGain(),lp=AC.createBiquadFilter();
     dl.delayTime.value=0.28;fb.gain.value=0.35;lp.type="lowpass";lp.frequency.value=2200;
     fxIn.connect(dl);dl.connect(lp);lp.connect(fb);fb.connect(dl);lp.connect(master);
-    startWind();startCrickets();
+    startWind();startCrickets();startRain();
     if(AC.state==="suspended")AC.resume();
   }catch(e){AC=null;}
 }
@@ -488,8 +488,8 @@ function winSound(){
 function ambientTick(dt){
   if(!AC||!cricG)return;
   critT-=dt;birdT-=dt;owlT-=dt;
-  if(critT<=0){critT=0.4;const nF=1-dayV;cricG.gain.setTargetAtTime(0.03*nF*nF,AC.currentTime,0.8);}
-  if(birdT<=0){birdT=1.5+Math.random()*4;if(dayV>0.15&&Math.random()<dayV)birdSound(dayV);}
+  if(critT<=0){critT=0.4;const nF=1-dayV;cricG.gain.setTargetAtTime(0.03*nF*nF*(1-0.85*wx.rain),AC.currentTime,0.8);}
+  if(birdT<=0){birdT=1.5+Math.random()*4;if(dayV>0.15&&wx.rain<0.4&&Math.random()<dayV)birdSound(dayV);}
   if(owlT<=0){owlT=10+Math.random()*14;if(1-dayV>0.6)owlSound(1-dayV);}
 }
 
@@ -640,7 +640,7 @@ function fadeA(a,tg,dt,dP){
   a.g.scale.setScalar(Math.max(a.vis,0.01)*a.s);
 }
 function upFox(a,dt,t,dP){
-  const want=t>0.4||t<0.2;
+  const want=wx.rain<0.5&&(t>0.4||t<0.2);
   a.tm-=dt;
   if(a.st==="hide"){
     a.g.visible=false;a.vis=0;
@@ -670,7 +670,7 @@ function upFox(a,dt,t,dP){
 function upW(a,dt,t){
   const dx=a.x-player.x,dz=a.z-player.z,dP=Math.hypot(dx,dz);
   if(a.k==="f"){upFox(a,dt,t,dP);return;}
-  const want=a.k==="d"?dayV>0.15:(t<0.2||t>0.9||(t>0.38&&t<0.6));
+  const want=wx.rain<0.5&&(a.k==="d"?dayV>0.15:(t<0.2||t>0.9||(t>0.38&&t<0.6)));
   if(a.vis<=0.001){
     if(!want){a.g.visible=false;return;}
     if(a.f1)freeSpot(a,40,58);else{freeSpot(a,18,36);a.f1=true;}
@@ -704,7 +704,7 @@ function upW(a,dt,t){
   a.g.position.set(a.x,y,a.z);a.g.rotation.y=a.h;
 }
 function upB(b,dt,time){
-  const tg=dayV>0.45?1:0;
+  const tg=(dayV>0.45&&wx.rain<0.5)?1:0;
   b.vis+=(tg-b.vis)*Math.min(1,dt*1.2);
   if(Math.abs(tg-b.vis)<0.02)b.vis=tg;
   if(b.vis<=0){b.g.visible=false;return;}
@@ -718,7 +718,7 @@ function upB(b,dt,time){
   w[0].rotation.z=-f;w[1].rotation.z=f;
 }
 function upO(o,dt,t){
-  const want=dayV<0.35,dx=o.x-player.x,dz=o.z-player.z,dP=Math.hypot(dx,dz),w=o.g.userData.w;
+  const want=dayV<0.35&&wx.rain<0.5,dx=o.x-player.x,dz=o.z-player.z,dP=Math.hypot(dx,dz),w=o.g.userData.w;
   o.tm-=dt;
   if(o.st==="hide"){
     o.g.visible=false;o.vis=0;
@@ -769,7 +769,7 @@ for(let q=0;q<2;q++){
 }
 let flyVis=0;
 function upF(dt,time){
-  flyVis+=((dayV<0.3?1:0)-flyVis)*Math.min(1,dt*0.8);
+  flyVis+=(((dayV<0.3&&wx.rain<0.5)?1:0)-flyVis)*Math.min(1,dt*0.8);
   fsets.forEach(function(s){
     if(flyVis<0.02){s.pts.visible=false;return;}
     s.pts.visible=true;
@@ -825,6 +825,110 @@ function applyQuality(q){
   dirty=true;
 }
 applyQuality(quality);
+
+/* ---------- OB-HAVO ---------- */
+// Yangi holat qo’shish uchun: WX ga yangi qator (masalan storm yoki mist) va WAUTO ga navbat qo’shing.
+// fog = tuman zichligi ko’paytmasi, light = yorug’lik ko’paytmasi, grey = osmonning kulrang tusi, rain = yomg’ir kuchi (0..1)
+const WX={
+  clear:{fog:1,light:1,grey:0,rain:0,label:""},
+  rain:{fog:1.4,light:0.74,grey:0.5,rain:1,label:" · Yomg’ir"}
+  // storm:{fog:1.6,light:0.6,grey:0.7,rain:1,label:" · Momaqaldiroq"},
+  // mist:{fog:2.4,light:0.85,grey:0.3,rain:0,label:" · Qalin tuman"}
+};
+// Har holat qancha davom etadi (soniya) va keyin qaysi holat keladi
+const WAUTO={clear:{next:"rain",dur:[120,240]},rain:{next:"clear",dur:[60,120]}};
+const WTRANS=8; // holatlar orasida o’tish (soniya)
+const wx={fog:1,light:1,grey:0,rain:0}; // hozirgi (silliq) qiymatlar
+const wFrom={fog:1,light:1,grey:0,rain:0};
+let wName="clear",wP=1,wTimer=120+Math.random()*120,wLbl="";
+function setWeather(name){
+  if(!WX[name]||name===wName)return;
+  for(const k in wFrom)wFrom[k]=wx[k];
+  wName=name;wP=0;
+  const a=WAUTO[name];wTimer=a?a.dur[0]+Math.random()*(a.dur[1]-a.dur[0]):1e9;
+}
+addEventListener("keydown",function(e){ // R — sinash uchun: yomg’irni qo’lda yoqish/o’chirish
+  if(e.code==="KeyR"&&running&&!paused&&!e.repeat)setWeather(wName==="rain"?"clear":"rain");
+});
+// Yomg’ir tomchilari: chiziqchalar, o’yinchi atrofida (o’yinchi bilan birga ko’chadi)
+const RMAX=380,RR=9,RH=10,RVX=1.2,RVY=16,RVZ=0.6;
+const rd=new Float32Array(RMAX*3),rpos=new Float32Array(RMAX*6);
+const rgeo=new T.BufferGeometry();
+rgeo.setAttribute("position",new T.BufferAttribute(rpos,3));
+const rmat=new T.LineBasicMaterial({color:0xb8cfe0,transparent:true,opacity:0,depthWrite:false});
+const rainL=new T.LineSegments(rgeo,rmat);
+rainL.frustumCulled=false;rainL.visible=false;scene.add(rainL);
+let rInit=false;
+sunM.material.transparent=true;moonM.material.transparent=true;
+const wTmp=new T.Color();
+function applyWeather(dt){
+  if(running){
+    wTimer-=dt;
+    if(wTimer<=0){const a=WAUTO[wName];if(a)setWeather(a.next);else wTimer=1e9;}
+  }
+  if(wP<1){
+    wP=Math.min(1,wP+dt/WTRANS);
+    const u=sstep(0,1,wP),to=WX[wName];
+    for(const k in wFrom)wx[k]=wFrom[k]+(to[k]-wFrom[k])*u;
+  }
+  const g=wx.grey,r=wx.rain;
+  // osmon va tuman: kulrangroq, to’qroq va zichroq
+  {
+    const c=scene.background,l=0.299*c.r+0.587*c.g+0.114*c.b;
+    wTmp.setRGB(l*0.7,l*0.75,l*0.82);
+    c.lerp(wTmp,g);
+    scene.fog.color.copy(c);
+    scene.fog.density*=wx.fog;
+    hemi.intensity*=wx.light;
+    sunL.intensity*=wx.light;moonL.intensity*=wx.light;
+    lampBase+=0.12*r;
+    stars.material.opacity*=(1-0.85*r);
+    sunM.material.opacity=moonM.material.opacity=1-0.92*r;
+    if(r>0.95){sunM.visible=false;moonM.visible=false;}
+  }
+  // tomchilar
+  if(r>0.02){
+    const cnt=Math.min(RMAX,Q.rain);
+    if(!rInit){
+      for(let i=0;i<RMAX;i++){rd[i*3]=player.x+(Math.random()*2-1)*RR;rd[i*3+1]=Math.random()*RH;rd[i*3+2]=player.z+(Math.random()*2-1)*RR;}
+      rInit=true;
+    }
+    const sh=0.35+0.65*dayV;
+    rmat.color.setRGB(0.72*sh,0.81*sh,0.88*sh);
+    rmat.opacity=0.5*r;
+    for(let i=0;i<cnt;i++){
+      let x=rd[i*3]+RVX*dt,y=rd[i*3+1]-RVY*dt,z=rd[i*3+2]+RVZ*dt;
+      const dx=x-player.x,dz=z-player.z;
+      if(dx>RR)x-=2*RR;else if(dx<-RR)x+=2*RR;
+      if(dz>RR)z-=2*RR;else if(dz<-RR)z+=2*RR;
+      if(y<0)y+=RH;
+      rd[i*3]=x;rd[i*3+1]=y;rd[i*3+2]=z;
+      const o=i*6;
+      rpos[o]=x;rpos[o+1]=y;rpos[o+2]=z;
+      rpos[o+3]=x-RVX*0.035;rpos[o+4]=y+RVY*0.035;rpos[o+5]=z-RVZ*0.035;
+    }
+    rgeo.setDrawRange(0,cnt*2);
+    rgeo.attributes.position.needsUpdate=true;
+    rainL.visible=true;
+  }else rainL.visible=false;
+  // yomg’ir tovushi: silliq kuchayadi va susayadi
+  if(rainG&&AC)rainG.gain.setTargetAtTime(0.12*r,AC.currentTime,0.5);
+  // ekrandagi yozuv
+  const lbl=todTxt+(r>0.5?WX.rain.label:"");
+  if(lbl!==wLbl){wLbl=lbl;todEl.textContent=lbl;}
+}
+let rainG=null;
+function startRain(){
+  const mk=function(type,freq,vol,off){
+    const s=AC.createBufferSource(),f=AC.createBiquadFilter(),gg=AC.createGain();
+    s.buffer=noiseBuf;s.loop=true;f.type=type;f.frequency.value=freq;gg.gain.value=vol;
+    s.connect(f);f.connect(gg);gg.connect(rainG);s.start(0,off);
+  };
+  rainG=AC.createGain();rainG.gain.value=0;rainG.connect(master);
+  mk("highpass",900,0.7,0.3);   // tomchilar shitirlashi
+  mk("lowpass",450,0.9,1.1);    // yumshoq past “taglik” ovozi
+}
+/* ---------- OB-HAVO TUGADI ---------- */
 
 /* ---------- KOMPAS ---------- */
 // Shimol = o’yin dunyosidagi -z tomon. Disk qarash yo’nalishiga qarab aylanadi,
@@ -1077,6 +1181,7 @@ function tick(now){
   cam.rotation.set(pitch,yaw,0);
   lamp.position.copy(player);
   applyTime(tcyc%1);
+  applyWeather(dt);
   updateAnimals(dt,now);
   updateCompass();
   lamp.intensity=lampBase*(1+Math.sin(now*0.01)*0.045);

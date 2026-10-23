@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0b1512">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Sirli o’rmon">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-512.png">
+<title>Sirli o’rmon</title>
+<style>
+:root{--bg:#0b1512;--ink:#e6efe8;--glow:#7ff0d0;--moss:#3d6b4f;color-scheme:dark}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Georgia,"Times New Roman",serif;overflow:hidden;touch-action:none}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+#hud{position:fixed;left:0;right:0;top:env(safe-area-inset-top,0px);padding:12px 16px;display:flex;justify-content:space-between;gap:12px;pointer-events:none;font-size:1.05rem;text-shadow:0 1px 6px #000;z-index:2}
+.ov{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:rgba(6,12,10,.88);text-align:center;padding:24px;z-index:5}
+.ov.hide{display:none}
+h1{font-size:clamp(2rem,7vw,3.4rem);margin:0;font-weight:400;letter-spacing:.02em}
+.ov p{max-width:36ch;margin:0;line-height:1.55;opacity:.88}
+.ov p.small{font-size:.9rem;opacity:.6}
+button{font:inherit;font-size:1.1rem;padding:12px 30px;border:1px solid var(--glow);background:transparent;color:var(--glow);border-radius:999px;cursor:pointer}
+button:hover{background:rgba(127,240,208,.12)}
+button:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+#snd{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:3;font-size:1rem;min-height:48px;min-width:48px;padding:10px 20px;background:rgba(6,12,10,.6);touch-action:manipulation}
+#tod{font-size:.95rem;opacity:.85}
+#stick{position:fixed;left:24px;bottom:calc(24px + env(safe-area-inset-bottom,0px));width:110px;height:110px;border-radius:50%;border:1px solid rgba(230,239,232,.3);display:none;z-index:2;pointer-events:none}
+#knob{position:absolute;left:35px;top:35px;width:40px;height:40px;border-radius:50%;background:rgba(127,240,208,.5)}
+@media (pointer:coarse){#stick{display:block}}
+</style>
+</head>
+<body>
+<div id="hud"><span id="count">Toshlar: 0/5</span><span id="tod">Tong</span><span id="hint"></span></div>
+<div id="stick"><div id="knob"></div></div>
+<button id="snd" aria-label="Ovozni yoqish yoki o’chirish" aria-pressed="true">Ovoz: yoqilgan</button>
+<div class="ov" id="start">
+  <h1>Sirli o’rmon</h1>
+  <p>Tuman bosgan o’rmonda 5 ta yorug’lik toshini toping. Hammasi yig’ilganda chiqish darvozasi ochiladi.</p>
+  <button id="go">Boshlash</button>
+  <p class="small">Kompyuter: WASD bilan yuring, sichqonchani bosib surib qarang, M — ovozni o’chirish. Telefon: chapda harakat, o’ngda qarash.</p>
+</div>
+<div class="ov hide" id="win">
+  <h1>O’rmondan chiqdingiz</h1>
+  <p>Barcha toshlarni topib, yo’lni ochdingiz.</p>
+  <button id="again">Qayta o’ynash</button>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
+<script>
+(function(){
+const T=THREE;
+const renderer=new T.WebGLRenderer({antialias:false});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));
+renderer.setSize(innerWidth,innerHeight);
+document.body.prepend(renderer.domElement);
+const scene=new T.Scene();
+scene.background=new T.Color(0x0e1d19);
+scene.fog=new T.FogExp2(0x0e1d19,0.05);
+const cam=new T.PerspectiveCamera(70,innerWidth/innerHeight,0.1,120);
+cam.rotation.order="YXZ";
+const hemi=new T.HemisphereLight(0x6f9c8a,0x0a140f,0.6);
+scene.add(hemi);
+const lamp=new T.PointLight(0xffe2a8,1.1,16);
+scene.add(lamp);
+const ground=new T.Mesh(new T.PlaneGeometry(300,300),new T.MeshLambertMaterial({color:0x1d3a2a}));
+ground.rotation.x=-Math.PI/2;
+scene.add(ground);
+
+let seed=7;
+const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+
+const bcn=[];
+function beacon(color,h,dayCol){
+  const m=new T.MeshBasicMaterial({color:color,transparent:true,opacity:0.28,fog:false});
+  bcn.push({m:m,n:new T.Color(color),d:new T.Color(dayCol)});
+  return new T.Mesh(new T.CylinderGeometry(0.05,0.05,h,6),m);
+}
+const spots=[];
+const stones=[];
+const stoneMat=new T.MeshBasicMaterial({color:0x7ff0d0});
+for(let i=0;i<5;i++){
+  const a=i*1.2566+rnd()*0.6,r=18+rnd()*32;
+  const g=new T.Group();
+  g.position.set(Math.cos(a)*r,0,Math.sin(a)*r);
+  const s=new T.Mesh(new T.OctahedronGeometry(0.35),stoneMat);
+  s.position.y=1.2;
+  const b=beacon(0x7ff0d0,30,0x0fa38c);
+  b.position.y=15;
+  g.add(s);g.add(b);
+  scene.add(g);
+  stones.push({g:g,s:s,got:false});
+  spots.push(g.position);
+}
+const gate=new T.Group();
+const gA=rnd()*6.28;
+gate.position.set(Math.cos(gA)*62,0,Math.sin(gA)*62);
+const pm=new T.MeshLambertMaterial({color:0x2c3b33});
+[-1.6,1.6].forEach(function(x){const p=new T.Mesh(new T.BoxGeometry(0.6,4,0.6),pm);p.position.set(x,2,0);gate.add(p);});
+const ring=new T.Mesh(new T.TorusGeometry(1.6,0.12,8,32),new T.MeshBasicMaterial({color:0xffc46b}));
+ring.position.y=2;
+gate.add(ring);
+const gb=beacon(0xffc46b,40,0xe0700a);
+gb.position.y=20;
+gate.add(gb);
+gate.visible=false;
+scene.add(gate);
+spots.push(gate.position);
+
+const trees=[];
+for(let i=0;i<480;i++){
+  const x=(rnd()-0.5)*150,z=(rnd()-0.5)*150;
+  if(x*x+z*z<16)continue;
+  if(spots.some(function(p){return (p.x-x)*(p.x-x)+(p.z-z)*(p.z-z)<9;}))continue;
+  trees.push([x,z,0.9+rnd()*0.9]);
+}
+const dummy=new T.Object3D();
+function inst(geo,col,y){
+  const m=new T.InstancedMesh(geo,new T.MeshLambertMaterial({color:col}),trees.length);
+  trees.forEach(function(t,i){
+    dummy.position.set(t[0],y*t[2],t[1]);
+    dummy.scale.set(t[2],t[2],t[2]);
+    dummy.rotation.y=i;
+    dummy.updateMatrix();
+    m.setMatrixAt(i,dummy.matrix);
+  });
+  scene.add(m);
+}
+inst(new T.CylinderGeometry(0.18,0.26,2.4,6),0x4a3626,1.2);
+inst(new T.ConeGeometry(1.3,4,7),0x1f4a33,4);
+
+const player=new T.Vector3(0,1.7,0);
+let yaw=0,pitch=0,running=false,found=0;
+const keys={};
+let jx=0,jy=0;
+const countEl=document.getElementById("count"),hintEl=document.getElementById("hint");
+
+/* ---------- KECHA VA KUNDUZ ---------- */
+const CYCLE=180;
+let tcyc=0,todTxt="",lampBase=0.15,dayV=0.2;
+const todEl=document.getElementById("tod");
+const sstep=function(a,b,x){x=Math.min(1,Math.max(0,(x-a)/(b-a)));return x*x*(3-2*x);};
+// [vaqt 0..1, osmon va tuman rangi, tuman zichligi]: tong, ertalab, kunduz, tush, kech, shom, tun, yarim tun, tong oldi
+const KF=[[0,0x4d5a6a,0.05],[0.12,0x9fb6c4,0.038],[0.25,0xa8d0e6,0.022],[0.38,0x9ec8dd,0.026],[0.48,0xe08a4f,0.04],[0.55,0x6a4a78,0.048],[0.62,0x141a2e,0.06],[0.75,0x070b14,0.066],[0.9,0x0d1220,0.06],[1,0x4d5a6a,0.05]].map(function(k){return {t:k[0],c:new T.Color(k[1]),d:k[2]};});
+const skyC=new T.Color(),dv=new T.Vector3();
+const hN=new T.Color(0x34507a),hD=new T.Color(0xcfe3f0),gN=new T.Color(0x0a140f),gD=new T.Color(0x3d5a44);
+const sunLo=new T.Color(0xff9a55),sunHi=new T.Color(0xfff1c8);
+const sunM=new T.Mesh(new T.SphereGeometry(7,12,8),new T.MeshBasicMaterial({color:0xfff1c8,fog:false}));
+const moonM=new T.Mesh(new T.SphereGeometry(4.5,12,8),new T.MeshBasicMaterial({color:0xe4ecff,fog:false}));
+const sunL=new T.DirectionalLight(0xfff1d0,0),moonL=new T.DirectionalLight(0x8fa8ff,0);
+scene.add(sunM,moonM,sunL,moonL);
+// yulduzlar (Math.random ishlatildi, shunda daraxt va toshlar joyi o’zgarmaydi)
+const sp=new Float32Array(450*3);
+for(let i=0;i<450;i++){
+  const u=Math.random()*6.2832,v=Math.random()*0.97+0.03,r=Math.sqrt(1-v*v);
+  sp[i*3]=Math.cos(u)*r*100;sp[i*3+1]=v*100;sp[i*3+2]=Math.sin(u)*r*100;
+}
+const sg=new T.BufferGeometry();
+sg.setAttribute("position",new T.BufferAttribute(sp,3));
+const stars=new T.Points(sg,new T.PointsMaterial({color:0xffffff,size:1.8,sizeAttenuation:false,transparent:true,opacity:0,fog:false,depthWrite:false}));
+stars.frustumCulled=false;
+scene.add(stars);
+
+// t (0..1) vaqtiga qarab hamma narsani sozlaydi
+function applyTime(t){
+  let i=0;
+  while(i<KF.length-2&&t>KF[i+1].t)i++;
+  const a=KF[i],b=KF[i+1],u=(t-a.t)/(b.t-a.t);
+  skyC.copy(a.c).lerp(b.c,u);
+  scene.background.copy(skyC);
+  scene.fog.color.copy(skyC);
+  scene.fog.density=a.d+(b.d-a.d)*u;
+  const ang=t*6.2832,s=Math.sin(ang),dayF=sstep(-0.15,0.35,s),nF=1-dayF;
+  dayV=dayF;
+  dv.set(Math.cos(ang),s,-0.35).normalize();
+  sunM.position.set(player.x+dv.x*85,dv.y*85,player.z+dv.z*85);
+  moonM.position.set(player.x-dv.x*85,-dv.y*85,player.z-dv.z*85);
+  sunM.visible=dv.y>-0.1;moonM.visible=dv.y<0.1;
+  sunM.material.color.copy(sunLo).lerp(sunHi,Math.min(1,Math.max(0,s*3)));
+  sunL.color.copy(sunM.material.color);
+  sunL.position.copy(dv).multiplyScalar(50);
+  moonL.position.set(-dv.x*50,-dv.y*50,-dv.z*50);
+  sunL.intensity=Math.max(0,s)*1.1;
+  moonL.intensity=Math.max(0,-s)*0.4;
+  hemi.intensity=0.38+0.45*dayF;
+  hemi.color.copy(hN).lerp(hD,dayF);
+  hemi.groundColor.copy(gN).lerp(gD,dayF);
+  stars.position.copy(player);
+  stars.rotation.y=t*1.5;
+  stars.material.opacity=nF*nF;
+  stars.visible=nF>0.02;
+  for(let k=0;k<bcn.length;k++){
+    bcn[k].m.color.copy(bcn[k].d).lerp(bcn[k].n,nF);
+    bcn[k].m.opacity=0.5+0.15*nF;
+  }
+  lampBase=0.15+1.65*nF;
+  const nm=t<0.15||t>=0.9?"Tong":t<0.42?"Kunduz":t<0.6?"Kech":"Tun";
+  if(nm!==todTxt){todTxt=nm;todEl.textContent=nm;}
+}
+/* ---------- KECHA VA KUNDUZ TUGADI ---------- */
+
+/* ---------- TOVUSH (Web Audio API, tashqi fayl yo’q) ---------- */
+let AC=null,master=null,fxIn=null,noiseBuf=null,muted=false,stepT=0.25;
+const sndBtn=document.getElementById("snd");
+
+// Tovush tizimini yaratadi. Faqat "Boshlash" bosilganda chaqiriladi.
+function initAudio(){
+  if(AC)return;
+  const Ctx=window.AudioContext||window.webkitAudioContext;
+  if(!Ctx)return;
+  try{
+    AC=new Ctx();
+    master=AC.createGain();
+    master.gain.value=muted?0:0.6;
+    master.connect(AC.destination);
+    const n=AC.sampleRate*2;
+    noiseBuf=AC.createBuffer(1,n,AC.sampleRate);
+    const d=noiseBuf.getChannelData(0);
+    for(let i=0;i<n;i++)d[i]=Math.random()*2-1;
+    // aks-sado (yoqimli ovozlarga "havo" beradi)
+    fxIn=AC.createGain();
+    const dl=AC.createDelay(1),fb=AC.createGain(),lp=AC.createBiquadFilter();
+    dl.delayTime.value=0.28;fb.gain.value=0.35;lp.type="lowpass";lp.frequency.value=2200;
+    fxIn.connect(dl);dl.connect(lp);lp.connect(fb);fb.connect(dl);lp.connect(master);
+    startWind();startCrickets();
+    if(AC.state==="suspended")AC.resume();
+  }catch(e){AC=null;}
+}
+
+// Shamol: yumshoq shovqin + sekin o’zgaruvchan filtr va kuch (shamol "nafas oladi")
+function startWind(){
+  const n=AC.sampleRate*4,b=AC.createBuffer(1,n,AC.sampleRate),d=b.getChannelData(0);
+  let last=0;
+  for(let i=0;i<n;i++){last=(last+0.02*(Math.random()*2-1))/1.02;d[i]=last*3.5;}
+  const src=AC.createBufferSource();src.buffer=b;src.loop=true;
+  const bp=AC.createBiquadFilter();bp.type="bandpass";bp.frequency.value=420;bp.Q.value=0.7;
+  const g=AC.createGain();g.gain.value=1.6;
+  src.connect(bp);bp.connect(g);g.connect(master);
+  const l1=AC.createOscillator(),d1=AC.createGain();
+  l1.frequency.value=0.07;d1.gain.value=220;l1.connect(d1);d1.connect(bp.frequency);
+  const l2=AC.createOscillator(),d2=AC.createGain();
+  l2.frequency.value=0.11;d2.gain.value=0.6;l2.connect(d2);d2.connect(g.gain);
+  l1.start();l2.start();src.start();
+  // past, sirli fon ovozi
+  [55,82.5].forEach(function(f){
+    const o=AC.createOscillator(),og=AC.createGain();
+    o.type="sine";o.frequency.value=f;og.gain.value=0.03;
+    o.connect(og);og.connect(master);o.start();
+  });
+}
+
+// Bitta nota (yoqimli ovozlar uchun)
+function tone(freq,t,dur,vol,type,toFx){
+  const o=AC.createOscillator(),g=AC.createGain();
+  o.type=type||"sine";o.frequency.value=freq;
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.exponentialRampToValueAtTime(vol,t+0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g);g.connect(master);
+  if(toFx)g.connect(fxIn);
+  o.start(t);o.stop(t+dur+0.05);
+}
+
+// Qadam: qisqa "tup" + barg shitirlashi
+function stepSound(){
+  if(!AC)return;
+  const t=AC.currentTime;
+  [[500+Math.random()*400,"lowpass",0.3,0.14],[2500,"highpass",0.06,0.09]].forEach(function(c){
+    const src=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();
+    src.buffer=noiseBuf;f.type=c[1];f.frequency.value=c[0];
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.exponentialRampToValueAtTime(c[2],t+0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+c[3]);
+    src.connect(f);f.connect(g);g.connect(master);
+    src.start(t,Math.random()*1.5,0.2);src.stop(t+0.2);
+  });
+}
+
+// Tosh topilganda: yuqoriga ko’tariluvchi jarang ovozi (har tosh balandroq)
+function stoneSound(n){
+  if(!AC)return;
+  const t=AC.currentTime,base=[523.25,587.33,659.25,783.99,880][Math.min(n,5)-1];
+  [1,1.25,1.5,2].forEach(function(m,i){
+    tone(base*m,t+i*0.09,1.1,0.16,"sine",true);
+    tone(base*m*2,t+i*0.09,0.6,0.04,"triangle",true);
+  });
+}
+
+// Darvoza ochilganda: past gumburlash + shamol "vuuush" + keng akkord
+function gateSound(delay){
+  if(!AC)return;
+  const t=AC.currentTime+delay;
+  const o=AC.createOscillator(),g=AC.createGain(),lp=AC.createBiquadFilter();
+  o.type="sawtooth";lp.type="lowpass";lp.frequency.value=260;
+  o.frequency.setValueAtTime(65,t);o.frequency.exponentialRampToValueAtTime(130,t+2.2);
+  g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.3,t+1.0);g.gain.exponentialRampToValueAtTime(0.0001,t+2.6);
+  o.connect(lp);lp.connect(g);g.connect(master);o.start(t);o.stop(t+2.7);
+  const w=AC.createBufferSource(),bp=AC.createBiquadFilter(),wg=AC.createGain();
+  w.buffer=noiseBuf;w.loop=true;bp.type="bandpass";bp.Q.value=1.2;
+  bp.frequency.setValueAtTime(300,t);bp.frequency.exponentialRampToValueAtTime(1800,t+1.6);
+  wg.gain.setValueAtTime(0.0001,t);wg.gain.exponentialRampToValueAtTime(0.18,t+0.8);wg.gain.exponentialRampToValueAtTime(0.0001,t+1.8);
+  w.connect(bp);bp.connect(wg);wg.connect(master);w.start(t);w.stop(t+1.9);
+  [220,277.18,329.63,440].forEach(function(f,i){tone(f,t+0.6+i*0.12,3,0.09,"sine",true);});
+}
+
+// Kriket: tunda yangraydigan ikkita "trrr" ovozi (kun vaqtiga qarab balandligi o’zgaradi)
+let cricG=null,critT=0,birdT=3,owlT=10;
+function startCrickets(){
+  cricG=AC.createGain();cricG.gain.value=0;cricG.connect(master);
+  [[4300,17,0.8],[4750,15,1.1]].forEach(function(c){
+    const o=AC.createOscillator(),tr=AC.createGain(),gp=AC.createGain();
+    const l1=AC.createOscillator(),d1=AC.createGain(),l2=AC.createOscillator(),d2=AC.createGain();
+    o.frequency.value=c[0];tr.gain.value=0.5;gp.gain.value=0.5;
+    l1.frequency.value=c[1];d1.gain.value=0.5;l1.connect(d1);d1.connect(tr.gain);
+    l2.frequency.value=c[2];d2.gain.value=0.5;l2.connect(d2);d2.connect(gp.gain);
+    o.connect(tr);tr.connect(gp);gp.connect(cricG);
+    o.start();l1.start();l2.start();
+  });
+}
+
+// Qush sayrashi: 2-4 ta qisqa "chirik"
+function birdSound(v){
+  const t0=AC.currentTime,f0=2200+Math.random()*1800,n=2+Math.floor(Math.random()*3);
+  for(let i=0;i<n;i++){
+    const t=t0+i*0.11,o=AC.createOscillator(),g=AC.createGain();
+    o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(f0*1.35,t+0.07);
+    g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.05*v,t+0.015);g.gain.exponentialRampToValueAtTime(0.0001,t+0.09);
+    o.connect(g);g.connect(master);g.connect(fxIn);o.start(t);o.stop(t+0.1);
+  }
+}
+
+// Boyqush: "hu-hu-huuu"
+function owlSound(v){
+  const t0=AC.currentTime;
+  [[0,0.35],[0.55,0.35],[1.1,0.9]].forEach(function(h){
+    const t=t0+h[0],o=AC.createOscillator(),g=AC.createGain();
+    o.frequency.setValueAtTime(400,t);o.frequency.exponentialRampToValueAtTime(350,t+h[1]);
+    g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.09*v,t+0.08);g.gain.exponentialRampToValueAtTime(0.0001,t+h[1]);
+    o.connect(g);g.connect(master);g.connect(fxIn);o.start(t);o.stop(t+h[1]+0.05);
+  });
+}
+
+// O’yin tugaganda: xotirjam akkord
+function winSound(){
+  if(!AC)return;
+  const t=AC.currentTime+0.2;
+  [196,261.63,329.63,392,587.33].forEach(function(f,i){tone(f,t+i*0.25,6,0.07,"sine",true);});
+}
+
+// Har kadrda chaqiriladi: kun vaqtiga qarab qush, kriket va boyqush ovozini boshqaradi
+function ambientTick(dt){
+  if(!AC||!cricG)return;
+  critT-=dt;birdT-=dt;owlT-=dt;
+  if(critT<=0){critT=0.4;const nF=1-dayV;cricG.gain.setTargetAtTime(0.03*nF*nF,AC.currentTime,0.8);}
+  if(birdT<=0){birdT=1.5+Math.random()*4;if(dayV>0.15&&Math.random()<dayV)birdSound(dayV);}
+  if(owlT<=0){owlT=10+Math.random()*14;if(1-dayV>0.6)owlSound(1-dayV);}
+}
+
+// Quyon sakrashi: yumshoq "tup"
+function hopSound(v){
+  if(!AC||v<=0.02)return;
+  const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();
+  o.frequency.setValueAtTime(140,t);o.frequency.exponentialRampToValueAtTime(70,t+0.08);
+  g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.12*v,t+0.01);g.gain.exponentialRampToValueAtTime(0.0001,t+0.1);
+  o.connect(g);g.connect(master);o.start(t);o.stop(t+0.12);
+}
+
+// Ovozni yoqish/o’chirish
+function applyMute(){
+  sndBtn.textContent=muted?"Ovoz: o’chiq":"Ovoz: yoqilgan";
+  sndBtn.setAttribute("aria-pressed",String(!muted));
+  if(master)master.gain.setTargetAtTime(muted?0:0.6,AC.currentTime,0.05);
+}
+sndBtn.onclick=function(){muted=!muted;applyMute();};
+document.addEventListener("visibilitychange",function(){
+  if(!AC)return;
+  if(document.hidden)AC.suspend();else AC.resume();
+});
+/* ---------- TOVUSH TUGADI ---------- */
+/* ---------- HAYVONLAR ---------- */
+const LOW=!!(window.matchMedia&&matchMedia("(pointer:coarse)").matches); // telefon = yengil rejim
+const CULL=LOW?38:55;
+const bG=new T.BoxGeometry(1,1,1),cG=new T.ConeGeometry(1,1,5),sG=new T.SphereGeometry(1,6,5),cyG=new T.CylinderGeometry(1,1,1,5);
+const lG=new T.CylinderGeometry(1,0.7,1,5);lG.translate(0,-0.5,0);
+const wG=new T.BoxGeometry(1,1,1);wG.translate(0,-0.5,0);
+const LM=function(c){return new T.MeshLambertMaterial({color:c});};
+const mDeer=LM(0x8b5a34),mAnt=LM(0xd8c9a3),mWh=LM(0xf0ece0),mRab=LM(0xa89a86),mFox=LM(0xd8671c),mDk=LM(0x23222b),mOwl=LM(0x8d7456);
+const mEye=new T.MeshBasicMaterial({color:0xffe27a});
+function part(g,geo,mat,x,y,z,sx,sy,sz,rx,rz){
+  const m=new T.Mesh(geo,mat);m.position.set(x,y,z);m.scale.set(sx,sy,sz);
+  if(rx)m.rotation.x=rx;
+  if(rz)m.rotation.z=rz;
+  g.add(m);return m;
+}
+function wings(g,x,y,len,wid,mat){
+  const L=new T.Group(),R=new T.Group();
+  L.position.set(-x,y,0);R.position.set(x,y,0);
+  part(L,wG,mat,0,0,0,0.04,len,wid);part(R,wG,mat,0,0,0,0.04,len,wid);
+  g.add(L,R);return [L,R];
+}
+function mkDeer(male){
+  const g=new T.Group(),lg=[];
+  part(g,bG,mDeer,0,0.95,0,0.5,0.55,1.15);
+  [[-1,1],[1,1],[-1,-1],[1,-1]].forEach(function(p){lg.push(part(g,lG,mDeer,p[0]*0.17,0.72,p[1]*0.42,0.06,0.72,0.06));});
+  part(g,bG,mDeer,0,1.3,0.6,0.2,0.6,0.22,0.5);
+  part(g,bG,mDeer,0,1.62,0.86,0.22,0.2,0.4);
+  part(g,cG,mDeer,-0.12,1.75,0.72,0.06,0.16,0.06);part(g,cG,mDeer,0.12,1.75,0.72,0.06,0.16,0.06);
+  part(g,bG,mWh,0,1.1,-0.6,0.12,0.14,0.08);
+  if(male){
+    part(g,cyG,mAnt,-0.1,1.95,0.74,0.02,0.45,0.02,0,0.4);part(g,cyG,mAnt,0.1,1.95,0.74,0.02,0.45,0.02,0,-0.4);
+    part(g,cyG,mAnt,-0.17,2.05,0.74,0.02,0.25,0.02,0,0.9);part(g,cyG,mAnt,0.17,2.05,0.74,0.02,0.25,0.02,0,-0.9);
+  }
+  return {g:g,lg:lg};
+}
+function mkRabbit(){
+  const g=new T.Group();
+  part(g,sG,mRab,0,0.2,0,0.17,0.17,0.27);part(g,sG,mRab,0,0.3,0.25,0.11,0.11,0.12);
+  part(g,bG,mRab,-0.05,0.5,0.22,0.035,0.22,0.03);part(g,bG,mRab,0.05,0.5,0.22,0.035,0.22,0.03);
+  part(g,sG,mWh,0,0.22,-0.28,0.07,0.07,0.07);
+  return {g:g,lg:[]};
+}
+function mkFox(){
+  const g=new T.Group(),lg=[];
+  part(g,bG,mFox,0,0.5,0,0.3,0.3,0.8);part(g,bG,mFox,0,0.62,0.5,0.24,0.22,0.26);
+  part(g,cG,mFox,0,0.58,0.72,0.07,0.2,0.07,1.5708);
+  part(g,cG,mFox,-0.08,0.8,0.46,0.05,0.14,0.05);part(g,cG,mFox,0.08,0.8,0.46,0.05,0.14,0.05);
+  [[-1,1],[1,1],[-1,-1],[1,-1]].forEach(function(p){lg.push(part(g,lG,mDk,p[0]*0.1,0.36,p[1]*0.28,0.045,0.36,0.045));});
+  part(g,bG,mFox,0,0.52,-0.72,0.15,0.15,0.6);part(g,bG,mWh,0,0.52,-1.04,0.16,0.16,0.14);
+  return {g:g,lg:lg};
+}
+function mkBird(){
+  const g=new T.Group();
+  part(g,sG,mDk,0,0,0,0.14,0.11,0.26);part(g,bG,mDk,0,0.01,-0.3,0.08,0.02,0.2);
+  g.userData.w=wings(g,0.1,0.03,0.4,0.2,mDk);
+  return g;
+}
+function mkOwl(){
+  const g=new T.Group();
+  part(g,sG,mOwl,0,0.3,0,0.2,0.3,0.2);part(g,sG,mOwl,0,0.66,0.02,0.17,0.15,0.16);
+  part(g,sG,mEye,-0.07,0.68,0.14,0.05,0.05,0.04);part(g,sG,mEye,0.07,0.68,0.14,0.05,0.05,0.04);
+  part(g,cG,mOwl,-0.1,0.84,0.02,0.04,0.1,0.04);part(g,cG,mOwl,0.1,0.84,0.02,0.04,0.1,0.04);
+  part(g,cG,mWh,0,0.6,0.17,0.03,0.07,0.03,1.5708);
+  g.userData.w=wings(g,0.19,0.44,0.5,0.2,mOwl);
+  return g;
+}
+
+// Hayvonlarni yaratish (soni telefonda kamroq)
+const walkers=[],birds=[];
+function addW(k,m,s,fr,fs,ws){
+  const a={k:k,g:m.g,lg:m.lg,s:s,x:0,z:0,h:Math.random()*6.28,th:0,bias:0,sp:0,tm:0,ph:0,vis:0,fr:fr,fs:fs,ws:ws,st:"hide",f1:false};
+  m.g.visible=false;scene.add(m.g);walkers.push(a);return a;
+}
+for(let i=0;i<(LOW?3:4);i++)addW("d",mkDeer(i%2===0),0.9+Math.random()*0.2,14,7.5,1.3);
+for(let i=0;i<(LOW?4:6);i++)addW("r",mkRabbit(),1,9,7,1.8);
+for(let i=0;i<(LOW?1:2);i++)addW("f",mkFox(),1,0,0,0).tm=8+Math.random()*7;
+for(let i=0;i<(LOW?4:6);i++){
+  const g=mkBird();g.visible=false;scene.add(g);
+  birds.push({g:g,cx:player.x+(Math.random()-0.5)*30,cz:player.z+(Math.random()-0.5)*30,r:6+Math.random()*8,a:Math.random()*6.28,sp:0.5+Math.random()*0.4,h:11+Math.random()*3,ph:Math.random()*6.28,vis:0});
+}
+const owl={g:mkOwl(),st:"hide",tm:6,vis:0,x:0,y:0,z:0,h:0,fl:0,hoot:5};
+owl.g.visible=false;scene.add(owl.g);
+
+const W2=function(a){while(a>Math.PI)a-=6.2832;while(a<-Math.PI)a+=6.2832;return a;};
+// Daraxt va toshlardan uzoq, bo’sh joy topadi (fa — qaysi tomonga qarab, ixtiyoriy)
+function freeSpot(a,minD,maxD,fa){
+  let x=0,z=0;
+  for(let n=0;n<14;n++){
+    const an=fa===undefined?Math.random()*6.2832:fa+(Math.random()-0.5)*1.6,d=minD+Math.random()*(maxD-minD);
+    x=player.x+Math.cos(an)*d;z=player.z+Math.sin(an)*d;
+    const pr=Math.hypot(x,z);if(pr>66){x*=66/pr;z*=66/pr;}
+    let ok=true;
+    for(let i=0;i<trees.length&&ok;i++){const dx=x-trees[i][0],dz=z-trees[i][1];if(dx*dx+dz*dz<1.5)ok=false;}
+    for(let i=0;i<spots.length&&ok;i++){const dx=x-spots[i].x,dz=z-spots[i].z;if(dx*dx+dz*dz<16)ok=false;}
+    if(ok)break;
+  }
+  a.x=x;a.z=z;
+}
+// Yurish: daraxt, tosh, darvoza va o’yinchidan itarilib turadi (yo’lni to’smaydi)
+function moveA(a,dt,sp){
+  a.x+=Math.sin(a.h)*sp*dt;a.z+=Math.cos(a.h)*sp*dt;
+  let hit=false;
+  for(let i=0;i<trees.length;i++){
+    const t=trees[i],dx=a.x-t[0],dz=a.z-t[1],q=dx*dx+dz*dz;
+    if(q<0.64){const d=Math.sqrt(q)||0.01;a.x=t[0]+dx/d*0.8;a.z=t[1]+dz/d*0.8;hit=true;}
+  }
+  for(let i=0;i<spots.length;i++){
+    const dx=a.x-spots[i].x,dz=a.z-spots[i].z,q=dx*dx+dz*dz;
+    if(q<9){const d=Math.sqrt(q)||0.01;a.x=spots[i].x+dx/d*3;a.z=spots[i].z+dz/d*3;hit=true;}
+  }
+  const px=a.x-player.x,pz=a.z-player.z,pq=px*px+pz*pz;
+  if(pq<2.56){const d=Math.sqrt(pq)||0.01;a.x=player.x+px/d*1.6;a.z=player.z+pz/d*1.6;}
+  const pr=Math.hypot(a.x,a.z);
+  if(pr>66){a.th=Math.atan2(-a.x,-a.z);a.bias=0;}
+  if(hit)a.bias=(Math.random()<0.5?-1:1)*(0.9+Math.random()*0.8);
+}
+function fadeA(a,tg,dt,dP){
+  a.vis+=(tg-a.vis)*Math.min(1,dt*1.5);
+  if(Math.abs(tg-a.vis)<0.03)a.vis=tg;
+  a.g.visible=a.vis>0.02&&dP<CULL;
+  a.g.scale.setScalar(Math.max(a.vis,0.01)*a.s);
+}
+function upFox(a,dt,t,dP){
+  const want=t>0.4||t<0.2;
+  a.tm-=dt;
+  if(a.st==="hide"){
+    a.g.visible=false;a.vis=0;
+    if(a.tm<=0&&want){
+      const dw=Math.min(32,1/scene.fog.density);
+      freeSpot(a,dw*0.75,dw,Math.atan2(-Math.cos(yaw),-Math.sin(yaw)));
+      a.st="watch";a.tm=6+Math.random()*3;a.vis=0.002;
+    }else if(a.tm<=0)a.tm=5;
+    return;
+  }
+  let sp=0;
+  if(a.st==="watch"){
+    a.th=Math.atan2(player.x-a.x,player.z-a.z);
+    if(a.tm<=0||dP<9||!want){a.st="leave";a.tm=7;}
+  }else{
+    a.th=Math.atan2(a.x-player.x,a.z-player.z)+a.bias;sp=2.6;
+    if(a.tm<=0||dP>CULL){a.st="hide";a.tm=18+Math.random()*20;a.vis=0;a.g.visible=false;return;}
+  }
+  a.h+=W2(a.th-a.h)*Math.min(1,dt*(sp>0?5:2.5));
+  if(sp>0){moveA(a,dt,sp);a.ph+=dt*8;}
+  a.bias*=Math.max(0,1-dt*0.6);
+  const sw=sp>0?0.6:0,s=Math.sin(a.ph)*sw;
+  a.lg[0].rotation.x=s;a.lg[3].rotation.x=s;a.lg[1].rotation.x=-s;a.lg[2].rotation.x=-s;
+  fadeA(a,(a.st==="watch"||a.tm>3)?1:0,dt,dP);
+  a.g.position.set(a.x,0,a.z);a.g.rotation.y=a.h;
+}
+function upW(a,dt,t){
+  const dx=a.x-player.x,dz=a.z-player.z,dP=Math.hypot(dx,dz);
+  if(a.k==="f"){upFox(a,dt,t,dP);return;}
+  const want=a.k==="d"?dayV>0.15:(t<0.2||t>0.9||(t>0.38&&t<0.6));
+  if(a.vis<=0.001){
+    if(!want){a.g.visible=false;return;}
+    if(a.f1)freeSpot(a,40,58);else{freeSpot(a,18,36);a.f1=true;}
+    a.vis=0.002;return;
+  }
+  if(dP>75&&want){freeSpot(a,42,60);return;}
+  if(dP>CULL){if(!want)a.vis=0;a.g.visible=false;return;}
+  const flee=!want||dP<a.fr;
+  let sp;
+  if(flee){a.th=Math.atan2(dx,dz);sp=want?a.fs:3;a.tm=0;}
+  else{
+    a.tm-=dt;
+    if(a.tm<=0){a.tm=2.5+Math.random()*4;a.th=a.h+(Math.random()-0.5)*2.2;a.sp=Math.random()<0.35?0:a.ws;}
+    sp=a.sp;
+  }
+  a.h+=W2(a.th+a.bias-a.h)*Math.min(1,dt*(flee?10:4));
+  a.bias*=Math.max(0,1-dt*0.6);
+  if(sp>0)moveA(a,dt,sp);
+  let y=0;
+  if(a.k==="d"){
+    a.ph+=dt*sp*2.2;
+    const s=Math.sin(a.ph)*Math.min(1,sp/2)*0.6;
+    a.lg[0].rotation.x=s;a.lg[3].rotation.x=s;a.lg[1].rotation.x=-s;a.lg[2].rotation.x=-s;
+  }else if(sp>0.1){
+    const f0=Math.floor(a.ph);
+    a.ph+=dt*(flee?3.2:2.2);
+    y=Math.abs(Math.sin(a.ph*Math.PI))*(flee?0.4:0.25);
+    if(Math.floor(a.ph)>f0&&a.g.visible&&dP<22)hopSound((1-dP/22)*0.8);
+  }
+  fadeA(a,want?1:(dP<26?1:0),dt,dP);
+  a.g.position.set(a.x,y,a.z);a.g.rotation.y=a.h;
+}
+function upB(b,dt,time){
+  const tg=dayV>0.45?1:0;
+  b.vis+=(tg-b.vis)*Math.min(1,dt*1.2);
+  if(Math.abs(tg-b.vis)<0.02)b.vis=tg;
+  if(b.vis<=0){b.g.visible=false;return;}
+  b.cx+=(player.x-b.cx)*dt*0.08;b.cz+=(player.z-b.cz)*dt*0.08;
+  b.a+=b.sp*dt;
+  b.g.visible=true;
+  b.g.position.set(b.cx+Math.cos(b.a)*b.r,b.h+Math.sin(b.a*2+b.ph)*0.7,b.cz+Math.sin(b.a)*b.r);
+  b.g.rotation.y=Math.atan2(-Math.sin(b.a),Math.cos(b.a));
+  b.g.scale.setScalar(Math.max(b.vis,0.01)*1.5);
+  const f=1.1+0.5*Math.sin(time*(12+b.ph)),w=b.g.userData.w;
+  w[0].rotation.z=-f;w[1].rotation.z=f;
+}
+function upO(o,dt,t){
+  const want=dayV<0.35,dx=o.x-player.x,dz=o.z-player.z,dP=Math.hypot(dx,dz),w=o.g.userData.w;
+  o.tm-=dt;
+  if(o.st==="hide"){
+    o.g.visible=false;o.vis=0;
+    if(o.tm<=0&&want){
+      const mx=Math.max(14,Math.min(34,1.3/scene.fog.density));
+      for(let n=0;n<40;n++){
+        const tr=trees[Math.floor(Math.random()*trees.length)],d=Math.hypot(tr[0]-player.x,tr[1]-player.z);
+        if(d>11&&d<mx){
+          o.x=tr[0]+(player.x-tr[0])/d*1.1*tr[2];o.z=tr[1]+(player.z-tr[1])/d*1.1*tr[2];o.y=2.7*tr[2];
+          o.st="perch";o.hoot=3+Math.random()*4;o.vis=0.002;break;
+        }
+      }
+      if(o.st==="hide")o.tm=3;
+    }
+    return;
+  }
+  if(o.st==="perch"){
+    o.vis+=((want?1:0)-o.vis)*Math.min(1,dt*1.5);
+    o.h=Math.atan2(player.x-o.x,player.z-o.z);
+    w[0].rotation.z=0;w[1].rotation.z=0;
+    if(!want&&o.vis<0.02){o.st="hide";o.tm=5;return;}
+    if(dP<9){o.st="fly";o.fl=0;o.tm=4;owlSound(0.9);}
+    o.hoot-=dt;
+    if(o.hoot<=0){o.hoot=8+Math.random()*7;if(dP<45)owlSound(Math.max(0.15,1-dP/45)*0.9);}
+  }else{
+    o.fl+=dt;
+    o.h=Math.atan2(dx,dz);
+    o.x+=Math.sin(o.h)*6*dt;o.z+=Math.cos(o.h)*6*dt;o.y+=2.2*dt;
+    const f=1.1+0.5*Math.sin(o.fl*14);
+    w[0].rotation.z=-f;w[1].rotation.z=f;
+    if(o.fl>2.5)o.vis=Math.max(0,o.vis-dt*1.2);
+    if(o.tm<=0){o.st="hide";o.tm=18+Math.random()*15;o.vis=0;o.g.visible=false;return;}
+  }
+  o.g.visible=o.vis>0.02;
+  o.g.position.set(o.x,o.y,o.z);o.g.rotation.y=o.h;
+  o.g.scale.setScalar(Math.max(o.vis,0.01));
+}
+// Yorug’lik qurtlari: tunda sekin suzadi, yengil yaltiraydi
+const FN=LOW?24:40,fsets=[];
+for(let q=0;q<2;q++){
+  const n=FN/2,pos=new Float32Array(n*3),geo=new T.BufferGeometry();
+  geo.setAttribute("position",new T.BufferAttribute(pos,3));
+  const pts=new T.Points(geo,new T.PointsMaterial({color:0xd8ff7a,size:6,sizeAttenuation:false,transparent:true,opacity:0,blending:T.AdditiveBlending,depthWrite:false}));
+  pts.frustumCulled=false;pts.visible=false;scene.add(pts);
+  const arr=[];
+  for(let i=0;i<n;i++)arr.push({x:0,y:1,z:0,ph:Math.random()*6.28,r:true});
+  fsets.push({pts:pts,pos:pos,arr:arr,ph:q*2.1});
+}
+let flyVis=0;
+function upF(dt,time){
+  flyVis+=((dayV<0.3?1:0)-flyVis)*Math.min(1,dt*0.8);
+  fsets.forEach(function(s){
+    if(flyVis<0.02){s.pts.visible=false;return;}
+    s.pts.visible=true;
+    s.pts.material.opacity=flyVis*(0.65+0.3*Math.sin(time*2.2+s.ph));
+    for(let i=0;i<s.arr.length;i++){
+      const f=s.arr[i],dx=f.x-player.x,dz=f.z-player.z;
+      if(f.r||dx*dx+dz*dz>484){
+        const an=Math.random()*6.2832,d=5+Math.random()*15;
+        f.x=player.x+Math.cos(an)*d;f.z=player.z+Math.sin(an)*d;f.y=0.6+Math.random()*2.2;f.r=false;
+      }
+      f.x+=Math.sin(time*0.5+f.ph)*0.35*dt;f.z+=Math.cos(time*0.43+f.ph*1.3)*0.35*dt;f.y+=Math.sin(time*0.7+f.ph*2)*0.2*dt;
+      s.pos[i*3]=f.x;s.pos[i*3+1]=f.y;s.pos[i*3+2]=f.z;
+    }
+    s.pts.geometry.attributes.position.needsUpdate=true;
+  });
+}
+function updateAnimals(dt,now){
+  const time=now*0.001,t=tcyc%1;
+  for(let i=0;i<walkers.length;i++)upW(walkers[i],dt,t);
+  for(let i=0;i<birds.length;i++)upB(birds[i],dt,time);
+  upO(owl,dt,t);
+  upF(dt,time);
+}
+/* ---------- HAYVONLAR TUGADI ---------- */
+
+
+addEventListener("keydown",function(e){
+  keys[e.code]=true;
+  if(e.code==="KeyM"&&!e.repeat){muted=!muted;applyMute();}
+});
+addEventListener("keyup",function(e){keys[e.code]=false;});
+
+function look(dx,dy,k){
+  yaw-=dx*k;
+  pitch=Math.max(-1.4,Math.min(1.4,pitch-dy*k));
+}
+let dragging=false;
+renderer.domElement.addEventListener("pointerdown",function(e){if(e.pointerType==="mouse")dragging=true;});
+addEventListener("pointerup",function(){dragging=false;});
+addEventListener("pointermove",function(e){if(dragging&&e.pointerType==="mouse")look(e.movementX,e.movementY,0.004);});
+
+let stickId=null,lookId=null,ox=0,oy=0,lx=0,ly=0;
+const knob=document.getElementById("knob");
+addEventListener("touchstart",function(e){
+  for(const t of e.changedTouches){
+    if(t.clientX<innerWidth*0.45&&stickId===null){stickId=t.identifier;ox=t.clientX;oy=t.clientY;}
+    else if(lookId===null){lookId=t.identifier;lx=t.clientX;ly=t.clientY;}
+  }
+},{passive:true});
+addEventListener("touchmove",function(e){
+  for(const t of e.changedTouches){
+    if(t.identifier===stickId){
+      let dx=(t.clientX-ox)/45,dy=(t.clientY-oy)/45;
+      const l=Math.hypot(dx,dy);
+      if(l>1){dx/=l;dy/=l;}
+      jx=dx;jy=dy;
+      knob.style.transform="translate("+dx*35+"px,"+dy*35+"px)";
+    }else if(t.identifier===lookId){
+      look(t.clientX-lx,t.clientY-ly,0.006);
+      lx=t.clientX;ly=t.clientY;
+    }
+  }
+},{passive:true});
+function endTouch(e){
+  for(const t of e.changedTouches){
+    if(t.identifier===stickId){stickId=null;jx=0;jy=0;knob.style.transform="";}
+    if(t.identifier===lookId){lookId=null;}
+  }
+}
+addEventListener("touchend",endTouch);
+addEventListener("touchcancel",endTouch);
+
+document.getElementById("go").onclick=function(){
+  initAudio();
+  document.getElementById("start").classList.add("hide");
+  running=true;
+};
+document.getElementById("again").onclick=function(){location.reload();};
+addEventListener("resize",function(){
+  renderer.setSize(innerWidth,innerHeight);
+  cam.aspect=innerWidth/innerHeight;
+  cam.updateProjectionMatrix();
+});
+
+let last=performance.now();
+function tick(now){
+  requestAnimationFrame(tick);
+  const dt=Math.min((now-last)/1000,0.05);
+  last=now;
+  if(running){
+    tcyc+=dt/CYCLE;
+    ambientTick(dt);
+    let f=(keys.KeyW||keys.ArrowUp?1:0)-(keys.KeyS||keys.ArrowDown?1:0)-jy;
+    let s=(keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0)+jx;
+    const l=Math.hypot(f,s);
+    if(l>1){f/=l;s/=l;}
+    if(l>0.1){
+      stepT+=dt;
+      if(stepT>=0.5/Math.min(1,Math.max(0.5,l))){stepT=0;stepSound();}
+    }else{stepT=0.25;}
+    const sp=4.2*dt;
+    player.x+=(-Math.sin(yaw)*f+Math.cos(yaw)*s)*sp;
+    player.z+=(-Math.cos(yaw)*f-Math.sin(yaw)*s)*sp;
+    for(let i=0;i<trees.length;i++){
+      const t=trees[i],dx=player.x-t[0],dz=player.z-t[1],d=Math.hypot(dx,dz),r=0.6;
+      if(d<r&&d>0.0001){player.x=t[0]+dx/d*r;player.z=t[1]+dz/d*r;}
+    }
+    const pr=Math.hypot(player.x,player.z);
+    if(pr>72){player.x*=72/pr;player.z*=72/pr;}
+    let nearest=1e9;
+    for(const st of stones){
+      if(st.got)continue;
+      const d=Math.hypot(player.x-st.g.position.x,player.z-st.g.position.z);
+      nearest=Math.min(nearest,d);
+      if(d<1.4){
+        st.got=true;st.g.visible=false;found++;
+        countEl.textContent="Toshlar: "+found+"/5";
+        stoneSound(found);
+        if(found===5){gate.visible=true;gateSound(0.7);}
+      }
+    }
+    if(found<5){hintEl.textContent="Eng yaqin tosh: "+Math.round(nearest)+" m";}
+    else{
+      const gd=Math.hypot(player.x-gate.position.x,player.z-gate.position.z);
+      hintEl.textContent="Darvoza ochildi: "+Math.round(gd)+" m";
+      if(gd<2.2){running=false;winSound();document.getElementById("win").classList.remove("hide");}
+    }
+  }
+  for(const st of stones){st.s.rotation.y+=dt;st.s.position.y=1.2+Math.sin(now*0.003)*0.15;}
+  ring.rotation.z+=dt*0.6;
+  cam.position.copy(player);
+  cam.rotation.set(pitch,yaw,0);
+  lamp.position.copy(player);
+  applyTime(tcyc%1);
+  updateAnimals(dt,now);
+  lamp.intensity=lampBase*(1+Math.sin(now*0.01)*0.045);
+  renderer.render(scene,cam);
+}
+requestAnimationFrame(tick);
+})();
+</script>
+<script>
+if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostname==="localhost")){
+  addEventListener("load",function(){navigator.serviceWorker.register("./sw.js").catch(function(){});});
+}
+</script>
+</body>
+</html>

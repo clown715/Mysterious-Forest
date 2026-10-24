@@ -33,6 +33,21 @@ button:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
 #knob{position:absolute;left:35px;top:35px;width:40px;height:40px;border-radius:50%;background:rgba(127,240,208,.5)}
 @media (pointer:coarse){#stick{display:block}}
 
+/* Fonar quvvati (pastki o’ng burchak) */
+#fbar{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(74px + env(safe-area-inset-bottom,0px));z-index:2;display:flex;align-items:center;gap:8px;pointer-events:none}
+#fbar.hide{display:none}
+#fbar svg{width:16px;height:16px;flex:none;color:var(--ember);filter:drop-shadow(0 0 4px rgba(255,196,107,.5))}
+#fbar .bt{width:84px;height:7px;border-radius:999px;background:rgba(6,12,10,.6);border:1px solid rgba(255,196,107,.4);overflow:hidden}
+#fbari{display:block;height:100%;width:100%;border-radius:999px;background:linear-gradient(90deg,#ffb74d,#ffe2a8);transition:width .3s}
+#fbar.pulse{animation:fpulse .9s ease}
+@keyframes fpulse{0%{filter:drop-shadow(0 0 0 rgba(255,226,168,0))}40%{filter:drop-shadow(0 0 10px rgba(255,226,168,.9))}100%{filter:none}}
+#fmsg{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(98px + env(safe-area-inset-bottom,0px));max-width:min(56vw,250px);text-align:right;font-size:.8rem;line-height:1.35;opacity:0;transition:opacity .8s;pointer-events:none;text-shadow:0 1px 6px #000;z-index:2}
+#fmsg.on{opacity:.9}
+#lowv{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity 1.2s;background:radial-gradient(ellipse at center,rgba(255,196,107,0) 55%,rgba(255,170,80,.16) 100%)}
+#lowv.on{opacity:1;animation:lowp 4.5s ease-in-out infinite}
+@keyframes lowp{0%,100%{opacity:.55}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){#lowv.on{animation:none}#fbar.pulse{animation:none}}
+
 /* Sozlamalar tugmasi (yuqori o’ng burchak) */
 #set{pointer-events:auto;display:flex;align-items:center;gap:7px;min-height:44px;padding:8px 14px;font-size:.9rem;background:rgba(6,12,10,.6);touch-action:manipulation;text-shadow:none}
 #set svg{width:18px;height:18px;flex:none}
@@ -125,6 +140,9 @@ button.warn{border-color:#ff9a7a;color:#ffb49c}
 </div>
 <div id="hintbar"><span id="hint"></span></div>
 <div id="stick"><div id="knob"></div></div>
+<div id="lowv" aria-hidden="true"></div>
+<div id="fmsg" data-i="bat_low" aria-hidden="true"></div>
+<div id="fbar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" data-ia="bat_aria" aria-label="Fonar quvvati"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6M10 3v3h4V3M8 6h8l1 4H7l1-4zM7 10v7a3 3 0 0 0 3 3h4a3 3 0 0 0 3-3v-7"/><path d="M12 12.5c1 1.2 1.2 2.3 0 3.2-1.2-.9-1-2 0-3.2z" fill="currentColor"/></svg><div class="bt"><i id="fbari"></i></div></div>
 <button id="snd" data-ia="snd_aria" aria-label="Ovozni yoqish yoki o’chirish" aria-pressed="true">Ovoz: yoqilgan</button>
 <div class="ov" id="start">
   <h1 data-i="title">Sirli o’rmon</h1>
@@ -145,6 +163,8 @@ button.warn{border-color:#ff9a7a;color:#ffb49c}
     <div class="row"><label for="vol" data-i="m_vol">Umumiy tovush</label><output id="volv">60%</output></div>
     <input type="range" id="vol" min="0" max="100" step="1" value="60">
     <div class="row"><span data-i="m_sound">Tovush</span><button id="mmute" type="button" aria-pressed="true">Ovoz: yoqilgan</button></div>
+    <div class="row"><span data-i="m_calm">Sokin rejim</span><button id="mcalm" type="button" aria-pressed="false">O’chiq</button></div>
+    <p class="sub" data-i="m_calm_d">Yoqilsa, fonar quvvati kamaymaydi.</p>
     <div class="row"><label for="sens" data-i="m_sens">Qarash sezgirligi</label><output id="sensv">100%</output></div>
     <input type="range" id="sens" min="40" max="200" step="5" value="100">
     <div class="row"><span id="qlbl" data-i="m_gfx">Grafika sifati</span></div>
@@ -175,12 +195,28 @@ button.warn{border-color:#ff9a7a;color:#ffb49c}
 (function(){
 const T=THREE;
 
+/* ---------- FONAR SOZLAMALARI: tezlikni shu yerda o’zgartiring ----------
+   Quyidagi "daqiqa" sonlari: fonar quvvati 100% dan 0% gacha shuncha daqiqada tushadi.
+   Raqam kattaroq bo’lsa — quvvat sekinroq kamayadi (o’yin yengilroq), kichikroq bo’lsa — tezroq (qiyinroq). */
+const FONAR_TURGANDA=8;      // yurmay turganda (tunda) quvvat necha daqiqada tugaydi
+const FONAR_YURGANDA=5.5;    // yurganda (tunda) quvvat necha daqiqada tugaydi
+const FONAR_KUNDUZI=12;      // kunduzi yurmay turganda necha daqiqada tugaydi (kunduzi quvvat sekinroq ketadi)
+const FONAR_MIN=0.25;        // quvvat tugaganda ham qoladigan yorug’lik ulushi (0.25 = 25%; fonar hech qachon o’chmaydi)
+const FONAR_MASOFA=0.6;      // quvvat tugaganda yorug’lik masofasi qancha qoladi (0.6 = 60%)
+const FONAR_TUMAN=0.35;      // quvvat tugaganda tuman qancha zichlashadi (0.35 = 35% ga)
+const TOLISH_TEZLIGI=0.03;   // yorug’lik qurtlari yonida quvvat soniyasiga qancha to’ladi (0.03 = 3%, taxminan 33 soniyada to’liq)
+const QURT_MASOFA=5;         // qurt shu masofadan (metr) yaqin bo’lsa, quvvat to’ladi
+const OGOH_DARAJA=0.2;       // quvvat shundan kam bo’lsa, yumshoq ogohlantirish chiqadi (0.2 = 20%)
+const OGOH_ORALIQ=30;        // ogohlantirish tovushi necha soniyada bir marta takrorlanadi
+const QURT_R2=QURT_MASOFA*QURT_MASOFA;
+
 /* ---------- TILLAR: o’yindagi HAMMA matn shu yerda ----------
    Yangi til qo’shish: TILLAR ichiga yangi blok yozing (til kodi, masalan de:{name:"Deutsch",t:{...}}), ichidagi hamma kalitni tarjima qiling.
    Kalit yetishmasa, o’zbekcha matn ko’rinadi. {n} va {d} — o’yin o’zi qo’yadigan raqamlar, ularni o’zgartirmang.
    Matnni o’zgartirish: kerakli tildagi qatorni toping va tahrirlang. Tugma o’zi paydo bo’ladi. */
 const TILLAR={
 uz:{name:"O’zbekcha",t:{
+ bat_aria:"Fonar quvvati",bat_low:"Fonar susaymoqda. Yorug’lik toshi yoki qurtlar uni to’ldiradi",m_calm:"Sokin rejim",m_calm_d:"Yoqilsa, fonar quvvati kamaymaydi.",calm_on:"Yoqilgan",calm_off:"O’chiq",
  title:"Sirli o’rmon",intro:"Tuman bosgan o’rmonda 5 ta yorug’lik toshini toping. Hammasi yig’ilganda chiqish darvozasi ochiladi.",
  start:"Boshlash",settings:"Sozlamalar",controls:"Kompyuter: WASD bilan yuring, R — yomg’irni sinash, sichqonchani bosib surib qarang, M — ovozni o’chirish, Esc — sozlamalar. Telefon: chapda harakat, o’ngda qarash.",
  win_title:"O’rmondan chiqdingiz",win_text:"Barcha toshlarni topib, yo’lni ochdingiz.",again:"Qayta o’ynash",
@@ -194,6 +230,7 @@ uz:{name:"O’zbekcha",t:{
  qd_low:"Kamroq daraxt va hayvon, tuman yaqinroq. Sekin telefonlar uchun.",qd_mid:"Muvozanatli sifat. Ko’p telefonlar uchun mos.",qd_high:"Eng chiroyli: ko’p daraxt va hayvon, uzoqroq ko’rinish.",
  tut_walk_c:"Ko’rinmas yo’l sizni chorlaydi. WASD tugmalari bilan yuring.",tut_walk_t:"Ko’rinmas yo’l sizni chorlaydi. Chap tomondagi joystik bilan yuring.",tut_look_c:"Atrofga razm soling: sichqonchani bosib, suring.",tut_look_t:"Atrofga razm soling: ekranning o’ng tomonini suring.",tut_goal:"O’rmonda yorug’lik toshlari yashiringan: ular uzoqdan nurli ustun bo’lib ko’rinadi. Eng yaqin tosh masofasi tepada yoziladi.",tut_gate:"Hamma toshlar yig’ilganda chiqish darvozasi ochiladi. Unga yetib boring.",tut_skip:"Tashlab ketish",m_tut:"Qo’llanmani qayta ko’rish",dir_n:"N",dir_e:"E",dir_s:"S",dir_w:"W"}},
 ru:{name:"Русский",t:{
+ bat_aria:"Заряд фонаря",bat_low:"Фонарь тускнеет. Светящийся камень или светлячки его подзарядят",m_calm:"Спокойный режим",m_calm_d:"Если включить, заряд фонаря не убывает.",calm_on:"Включён",calm_off:"Выключен",
  title:"Таинственный лес",intro:"В окутанном туманом лесу найдите 5 светящихся камней. Когда все камни будут собраны, откроются ворота выхода.",
  start:"Начать",settings:"Настройки",controls:"Компьютер: ходите клавишами WASD, R — проверить дождь, осматривайтесь мышью, M — выключить звук, Esc — настройки. Телефон: слева движение, справа обзор.",
  win_title:"Вы вышли из леса",win_text:"Вы нашли все камни и открыли путь.",again:"Играть снова",
@@ -207,6 +244,7 @@ ru:{name:"Русский",t:{
  qd_low:"Меньше деревьев и животных, туман ближе. Для медленных телефонов.",qd_mid:"Сбалансированное качество. Подходит для большинства телефонов.",qd_high:"Самое красивое: больше деревьев и животных, дальше обзор.",
  tut_walk_c:"Лес зовёт вас вперёд. Идите, нажимая клавиши WASD.",tut_walk_t:"Лес зовёт вас вперёд. Идите с помощью левого джойстика.",tut_look_c:"Осмотритесь: зажмите кнопку мыши и двигайте ею.",tut_look_t:"Осмотритесь: проведите пальцем по правой части экрана.",tut_goal:"В лесу спрятаны светящиеся камни: издалека их выдаёт столб света. Расстояние до ближайшего камня указано вверху.",tut_gate:"Когда все камни будут собраны, ворота выхода откроются. Дойдите до них.",tut_skip:"Пропустить",m_tut:"Посмотреть обучение ещё раз",dir_n:"С",dir_e:"В",dir_s:"Ю",dir_w:"З"}},
 en:{name:"English",t:{
+ bat_aria:"Lantern power",bat_low:"The lantern is fading. A glowing stone or fireflies will refill it",m_calm:"Calm mode",m_calm_d:"When on, the lantern never loses power.",calm_on:"On",calm_off:"Off",
  title:"The Mysterious Forest",intro:"Find 5 glowing stones in the fog-shrouded forest. When all of them are gathered, the exit gate will open.",
  start:"Start",settings:"Settings",controls:"Computer: walk with WASD, R — test the rain, drag the mouse to look around, M — mute, Esc — settings. Phone: move on the left, look on the right.",
  win_title:"You escaped the forest",win_text:"You found every stone and opened the way.",again:"Play again",
@@ -220,6 +258,7 @@ en:{name:"English",t:{
  qd_low:"Fewer trees and animals, closer fog. For slower phones.",qd_mid:"Balanced quality. Suits most phones.",qd_high:"The prettiest: more trees and animals, a longer view.",
  tut_walk_c:"The forest calls you onward. Walk with the WASD keys.",tut_walk_t:"The forest calls you onward. Walk with the joystick on the left.",tut_look_c:"Look around: hold the mouse button and drag.",tut_look_t:"Look around: swipe on the right side of the screen.",tut_goal:"Glowing stones hide in the forest: each one shows itself from afar as a pillar of light. The distance to the nearest stone appears at the top.",tut_gate:"When every stone is gathered, the exit gate will open. Make your way to it.",tut_skip:"Skip",m_tut:"Replay the tutorial",dir_n:"N",dir_e:"E",dir_s:"S",dir_w:"W"}},
 tr:{name:"Türkçe",t:{
+ bat_aria:"Fener gücü",bat_low:"Fener sönükleşiyor. Işık taşı veya ateşböcekleri onu yeniler",m_calm:"Sakin mod",m_calm_d:"Açıkken fenerin gücü azalmaz.",calm_on:"Açık",calm_off:"Kapalı",
  title:"Gizemli Orman",intro:"Sisle kaplı ormanda 5 ışık taşı bulun. Hepsi toplandığında çıkış kapısı açılır.",
  start:"Başla",settings:"Ayarlar",controls:"Bilgisayar: WASD ile yürüyün, R — yağmuru deneyin, fareyi sürükleyerek etrafa bakın, M — sesi kapatın, Esc — ayarlar. Telefon: solda hareket, sağda bakış.",
  win_title:"Ormandan çıktınız",win_text:"Tüm taşları bulup yolu açtınız.",again:"Tekrar oyna",
@@ -233,6 +272,7 @@ tr:{name:"Türkçe",t:{
  qd_low:"Daha az ağaç ve hayvan, sis daha yakın. Yavaş telefonlar için.",qd_mid:"Dengeli kalite. Çoğu telefona uygun.",qd_high:"En güzel görünüm: daha çok ağaç ve hayvan, daha uzak görüş.",
  tut_walk_c:"Orman sizi ileri çağırıyor. WASD tuşlarıyla yürüyün.",tut_walk_t:"Orman sizi ileri çağırıyor. Soldaki joystick ile yürüyün.",tut_look_c:"Etrafa göz atın: fare tuşunu basılı tutup sürükleyin.",tut_look_t:"Etrafa göz atın: ekranın sağ tarafını kaydırın.",tut_goal:"Ormanda ışık taşları saklı: uzaktan bir ışık sütunu olarak görünürler. En yakın taşın uzaklığı yukarıda yazar.",tut_gate:"Tüm taşlar toplandığında çıkış kapısı açılır. Ona ulaşın.",tut_skip:"Atla",m_tut:"Eğitimi yeniden göster",dir_n:"K",dir_e:"D",dir_s:"G",dir_w:"B"}},
 ko:{name:"한국어",t:{
+ bat_aria:"랜턴 전력",bat_low:"랜턴이 희미해지고 있어요. 빛나는 돌이나 반딧불이가 다시 채워 줍니다",m_calm:"고요 모드",m_calm_d:"켜면 랜턴 전력이 줄어들지 않습니다.",calm_on:"켜짐",calm_off:"꺼짐",
  title:"신비의 숲",intro:"안개 낀 숲에서 빛나는 돌 5개를 찾으세요. 모두 모으면 출구 문이 열립니다.",
  start:"시작",settings:"설정",controls:"컴퓨터: WASD로 이동, R — 비 테스트, 마우스를 끌어 둘러보기, M — 소리 끄기, Esc — 설정. 휴대폰: 왼쪽은 이동, 오른쪽은 시점 조작.",
  win_title:"숲을 빠져나왔습니다",win_text:"모든 돌을 찾아 길을 열었습니다.",again:"다시 플레이",
@@ -264,7 +304,7 @@ function autoLang(){ // telefon tiliga qarab; aniqlanmasa o’zbek
 
 /* ---------- SOZLAMALAR (brauzerda saqlanadi) ---------- */
 const SKEY="sirli-ormon-sozlamalar-v1";
-const st={vol:60,mute:false,sens:100,q:"",sug:false,season:"summer",lang:"",tut:false};
+const st={vol:60,mute:false,sens:100,q:"",sug:false,season:"summer",lang:"",tut:false,calm:false};
 try{
   const raw=localStorage.getItem(SKEY);
   if(raw){
@@ -278,6 +318,7 @@ try{
       if(typeof o.lang==="string")st.lang=o.lang;
       if(typeof o.tut==="boolean")st.tut=o.tut;
       if(typeof o.sug==="boolean")st.sug=o.sug;
+      if(typeof o.calm==="boolean")st.calm=o.calm;
     }
   }
 }catch(e){}
@@ -916,8 +957,9 @@ for(let q=0;q<2;q++){
   for(let i=0;i<n;i++)arr.push({x:0,y:1,z:0,ph:Math.random()*6.28,r:true});
   fsets.push({pts:pts,pos:pos,arr:arr,ph:q*2.1});
 }
-let flyVis=0;
+let flyVis=0,flyNear=0;
 function upF(dt,time){
+  flyNear=0;
   flyVis+=(((dayV<0.3&&wx.rain<0.5&&S.fl!==0)?1:0)-flyVis)*Math.min(1,dt*0.8);
   fsets.forEach(function(s){
     if(flyVis<0.02){s.pts.visible=false;return;}
@@ -932,6 +974,7 @@ function upF(dt,time){
       }
       f.x+=Math.sin(time*0.5+f.ph)*0.35*dt;f.z+=Math.cos(time*0.43+f.ph*1.3)*0.35*dt;f.y+=Math.sin(time*0.7+f.ph*2)*0.2*dt;
       s.pos[i*3]=f.x;s.pos[i*3+1]=f.y;s.pos[i*3+2]=f.z;
+      {const dy=f.y-1.7;if(dx*dx+dz*dz+dy*dy<QURT_R2)flyNear++;}
     }
     s.pts.geometry.attributes.position.needsUpdate=true;
   });
@@ -1336,7 +1379,7 @@ const volEl=document.getElementById("vol"),volv=document.getElementById("volv");
 const sensEl=document.getElementById("sens"),sensv=document.getElementById("sensv");
 const qbtns=Array.prototype.slice.call(menu.querySelectorAll("[data-q]")),qdesc=document.getElementById("qdesc");
 const closeB=document.getElementById("mclose"),restartB=document.getElementById("mrestart");
-const toast=document.getElementById("toast");
+const toast=document.getElementById("toast"),mcalm=document.getElementById("mcalm");
 let lastFocus=null,rsT=0,toastT=0;
 const sbox=document.getElementById("sbtns"),sbtns=[];
 Object.keys(SEA).forEach(function(id){
@@ -1376,6 +1419,7 @@ function applyLang(){
 let fpsT=0,fpsF=0,fpsWarm=true,fpsDone=false;
 
 function syncMenu(){
+  mcalm.textContent=tr(st.calm?"calm_on":"calm_off");mcalm.setAttribute("aria-pressed",String(!!st.calm));
   volEl.value=st.vol;volv.textContent=st.vol+"%";
   sensEl.value=st.sens;sensv.textContent=st.sens+"%";
   qbtns.forEach(function(b){b.setAttribute("aria-pressed",String(b.getAttribute("data-q")===quality));});
@@ -1447,6 +1491,7 @@ restartB.onclick=function(){
   restartB.textContent=tr("m_sure");
   rsT=setTimeout(resetRestart,4000);
 };
+mcalm.onclick=function(){st.calm=!st.calm;if(st.calm)bat=1;saveNow();syncMenu();};
 document.getElementById("tyes").onclick=function(){setQuality("low");};
 document.getElementById("tno").onclick=hideToast;
 syncMenu();
@@ -1497,6 +1542,30 @@ addEventListener("resize",function(){
   dirty=true;
 });
 
+/* ---------- FONAR QUVVATI ---------- */
+let bat=1,batS=1,batLow=false,batMsgT=0,batPct=-1,batShown=true; // bat — haqiqiy quvvat (0..1), batS — ko’rinadigan (silliq) qiymati
+const fbarEl=document.getElementById("fbar"),fbariEl=document.getElementById("fbari"),fmsgEl=document.getElementById("fmsg"),lowvEl=document.getElementById("lowv");
+function batPulse(){fbarEl.classList.remove("pulse");void fbarEl.offsetWidth;fbarEl.classList.add("pulse");}
+// Ohista, yoqimli ikki nota (qo’rqinchli emas)
+function lowSound(){
+  if(!AC)return;
+  const t=AC.currentTime;
+  tone(329.63,t,1.3,0.06,"sine",true);tone(261.63,t+0.4,1.8,0.05,"sine",true);
+}
+function updateBat(dt){
+  if(st.calm)bat=1;
+  batS+=(bat-batS)*Math.min(1,dt*3);
+  if(Math.abs(bat-batS)<0.002)batS=bat;
+  const show=!st.calm;
+  if(show!==batShown){batShown=show;fbarEl.classList.toggle("hide",!show);}
+  const pct=Math.round(batS*100);
+  if(pct!==batPct){batPct=pct;fbariEl.style.width=pct+"%";if(pct%5===0)fbarEl.setAttribute("aria-valuenow",String(pct));}
+  const low=show&&(batLow?bat<OGOH_DARAJA+0.1:bat<OGOH_DARAJA);
+  if(low!==batLow){batLow=low;lowvEl.classList.toggle("on",low);fmsgEl.classList.toggle("on",low);fmsgEl.setAttribute("aria-hidden",String(!low));batMsgT=0;}
+  if(low){batMsgT-=dt;if(batMsgT<=0){batMsgT=OGOH_ORALIQ;lowSound();}}
+}
+/* ---------- FONAR QUVVATI TUGADI ---------- */
+
 let last=performance.now();
 function tick(now){
   requestAnimationFrame(tick);
@@ -1528,6 +1597,13 @@ function tick(now){
       stepT+=dt;
       if(stepT>=0.5/Math.min(1,Math.max(0.5,l))){stepT=0;stepSound();}
     }else{stepT=0.25;}
+    // fonar quvvati: yurganda tezroq, kunduzi sekinroq kamayadi; sokin rejimda kamaymaydi
+    if(!st.calm){
+      const mins=l>0.1?FONAR_YURGANDA:FONAR_TURGANDA;
+      bat-=dt/(mins*60)*(1-(1-FONAR_TURGANDA/FONAR_KUNDUZI)*dayV);
+      if(flyNear>0&&flyVis>0.3)bat+=TOLISH_TEZLIGI*Math.min(1,flyNear/3)*dt; // qurtlar yonida sekin to’ladi
+      bat=Math.min(1,Math.max(0,bat));
+    }
     const sp=4.2*dt;
     player.x+=(-Math.sin(yaw)*f+Math.cos(yaw)*s)*sp;
     player.z+=(-Math.cos(yaw)*f-Math.sin(yaw)*s)*sp;
@@ -1544,6 +1620,7 @@ function tick(now){
       nearest=Math.min(nearest,d);
       if(d<1.4){
         st2.got=true;st2.g.visible=false;found++;
+        bat=1;batPulse(); // tosh topildi: quvvat to’liq to’ladi
         countEl.textContent=tr("count",{n:found});
         stoneSound(found);
         if(found===5){gate.visible=true;gateSound(0.7);}
@@ -1568,7 +1645,10 @@ function tick(now){
   updateSpots();
   updateAnimals(dt,now);
   updateCompass();
-  lamp.intensity=lampBase*(1+Math.sin(now*0.01)*0.045);
+  updateBat(dt);
+  lamp.intensity=lampBase*(FONAR_MIN+(1-FONAR_MIN)*batS)*(1+Math.sin(now*0.01)*0.045+(1-batS)*Math.sin(now*0.023)*0.05);
+  lamp.distance=16*(FONAR_MASOFA+(1-FONAR_MASOFA)*batS);
+  scene.fog.density*=1+FONAR_TUMAN*(1-batS)*(0.4+0.6*(1-dayV));
   renderer.render(scene,cam);
 }
 applyLang();

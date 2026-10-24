@@ -114,6 +114,29 @@ button[hidden]{display:none!important}
 #tut button{pointer-events:auto;font-size:.85rem;padding:6px 14px;min-height:40px;margin-top:8px;touch-action:manipulation}
 @keyframes tutin{from{opacity:0}to{opacity:1}}
 @media (max-height:430px){#tut{font-size:.85rem;padding:8px 12px}}
+
+/* Rekord va yutuqlar */
+#achS{font-size:1rem;padding:10px 24px;min-height:44px;touch-action:manipulation}
+#wstat{display:flex;flex-direction:column;gap:4px}
+#wtime,#wbest{font-size:1.15rem;opacity:1;max-width:none}
+#wnew{display:inline-block;padding:6px 16px;border:1px solid var(--ember);border-radius:999px;background:rgba(255,196,107,.1);color:var(--ember);font-size:1rem;opacity:1;max-width:none}
+#wnew[hidden]{display:none}
+#ach{z-index:9;background:rgba(6,12,10,.92)}
+#abest{margin:8px 0 0;text-align:center;font-size:1.05rem;color:var(--ember);opacity:1;max-width:none}
+#acnt{margin:2px 0 0;text-align:center;font-size:.85rem;opacity:.65;max-width:none}
+.alist{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.alist li{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid rgba(127,240,208,.35);border-radius:12px;background:rgba(127,240,208,.07)}
+.alist li.off{border-color:rgba(230,239,232,.15);background:transparent;opacity:.55}
+.alist .at{min-width:0;overflow-wrap:anywhere}
+.alist b{display:block;font-weight:400;font-size:1rem}
+.alist small{display:block;font-size:.8rem;opacity:.7;line-height:1.35;margin-top:2px}
+.alist .stt{flex:none;max-width:38%;text-align:right;font-size:.75rem;color:var(--glow)}
+.alist li.off .stt{color:var(--ink)}
+#achtoast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 118px);width:max-content;max-width:min(88vw,320px);box-sizing:border-box;z-index:20;display:flex;align-items:center;gap:10px;padding:9px 16px;border-radius:16px;background:rgba(6,12,10,.86);border:1px solid rgba(255,196,107,.6);box-shadow:0 0 18px rgba(255,196,107,.22);font-size:.9rem;line-height:1.3;text-align:left;pointer-events:none;-webkit-user-select:none;user-select:none;opacity:0;transform:translate(-50%,-10px);transition:opacity .35s,transform .35s}
+#achtoast.on{opacity:1;transform:translate(-50%,0)}
+#achtoast svg{width:18px;height:18px;flex:none;color:var(--ember)}
+@media (max-height:430px){#achtoast{top:calc(env(safe-area-inset-top,0px) + 100px)}}
+@media (prefers-reduced-motion:reduce){#achtoast{transform:translate(-50%,0);transition:opacity .2s}}
 </style>
 </head>
 <body>
@@ -155,12 +178,15 @@ button[hidden]{display:none!important}
   <button id="cont" data-i="cont" hidden>Davom etish</button>
   <button id="newg" class="ghost" data-i="newg" hidden>Yangi o’yin</button>
   <button id="set2" class="ghost" type="button" data-i="settings">Sozlamalar</button>
+  <button id="achS" class="ghost" type="button" data-i="ach_btn">Yutuqlar</button>
   <div class="langs" id="langs1" role="group" aria-label="Til / Language"></div>
   <p class="small" data-i="controls">Kompyuter: WASD bilan yuring, R — yomg’irni sinash, sichqonchani bosib surib qarang, M — ovozni o’chirish, Esc — sozlamalar. Telefon: chapda harakat, o’ngda qarash.</p>
 </div>
 <div class="ov hide" id="win">
   <h1 data-i="win_title">O’rmondan chiqdingiz</h1>
   <p data-i="win_text">Barcha toshlarni topib, yo’lni ochdingiz.</p>
+  <div id="wstat"><p id="wtime"></p><p id="wbest"></p></div>
+  <p id="wnew" data-i="win_new" hidden>Yangi rekord!</p>
   <button id="again" data-i="again">Qayta o’ynash</button>
 </div>
 <div class="ov hide" id="menu" role="dialog" aria-modal="true" aria-labelledby="mtitle">
@@ -188,11 +214,22 @@ button[hidden]{display:none!important}
     <div class="langs" id="langs2" role="group" aria-labelledby="llbl"></div>
     <div class="acts">
       <button type="button" id="mclose" data-i="m_close">Davom etish</button>
+      <button type="button" id="machB" class="ghost" data-i="ach_btn">Yutuqlar</button>
       <button type="button" id="mtut" class="ghost" data-i="m_tut">Qo’llanmani qayta ko’rish</button>
       <button type="button" id="mrestart" class="ghost warn">O’yinni qayta boshlash</button>
     </div>
   </div>
 </div>
+<div class="ov hide" id="ach" role="dialog" aria-modal="true" aria-labelledby="atitle">
+  <div class="panel">
+    <h2 id="atitle" data-i="ach_title">Yutuqlar</h2>
+    <p id="abest"></p>
+    <p id="acnt"></p>
+    <ul class="alist" id="alist"></ul>
+    <div class="acts"><button type="button" id="aclose" data-i="ach_close">Yopish</button></div>
+  </div>
+</div>
+<div id="achtoast" role="status" aria-live="polite"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg><span id="achtx"></span></div>
 <div id="toast" class="hide" role="status" aria-live="polite">
   <div data-i="toast">O’yin sekin ishlayotganga o’xshaydi. Grafikani pastga tushiraymi?</div>
   <button type="button" id="tyes" data-i="toast_yes">Ha, tushir</button><button type="button" id="tno" class="ghost" data-i="toast_no">Yo’q</button>
@@ -236,7 +273,13 @@ uz:{name:"O’zbekcha",t:{
  tod0:"Tong",tod1:"Kunduz",tod2:"Kech",tod3:"Tun",w_rain:"Yomg’ir",w_snow:"Qor",
  season_summer:"Yoz",season_autumn:"Kuz",season_winter:"Qish",season_spring:"Bahor",
  qd_low:"Kamroq daraxt va hayvon, tuman yaqinroq. Sekin telefonlar uchun.",qd_mid:"Muvozanatli sifat. Ko’p telefonlar uchun mos.",qd_high:"Eng chiroyli: ko’p daraxt va hayvon, uzoqroq ko’rinish.",
- tut_walk_c:"Ko’rinmas yo’l sizni chorlaydi. WASD tugmalari bilan yuring.",tut_walk_t:"Ko’rinmas yo’l sizni chorlaydi. Chap tomondagi joystik bilan yuring.",tut_look_c:"Atrofga razm soling: sichqonchani bosib, suring.",tut_look_t:"Atrofga razm soling: ekranning o’ng tomonini suring.",tut_goal:"O’rmonda yorug’lik toshlari yashiringan: ular uzoqdan nurli ustun bo’lib ko’rinadi. Eng yaqin tosh masofasi tepada yoziladi.",tut_gate:"Hamma toshlar yig’ilganda chiqish darvozasi ochiladi. Unga yetib boring.",tut_skip:"Tashlab ketish",m_tut:"Qo’llanmani qayta ko’rish",dir_n:"N",dir_e:"E",dir_s:"S",dir_w:"W"}},
+ tut_walk_c:"Ko’rinmas yo’l sizni chorlaydi. WASD tugmalari bilan yuring.",tut_walk_t:"Ko’rinmas yo’l sizni chorlaydi. Chap tomondagi joystik bilan yuring.",tut_look_c:"Atrofga razm soling: sichqonchani bosib, suring.",tut_look_t:"Atrofga razm soling: ekranning o’ng tomonini suring.",tut_goal:"O’rmonda yorug’lik toshlari yashiringan: ular uzoqdan nurli ustun bo’lib ko’rinadi. Eng yaqin tosh masofasi tepada yoziladi.",tut_gate:"Hamma toshlar yig’ilganda chiqish darvozasi ochiladi. Unga yetib boring.",tut_skip:"Tashlab ketish",m_tut:"Qo’llanmani qayta ko’rish",dir_n:"N",dir_e:"E",dir_s:"S",dir_w:"W",
+ ach_btn:"Yutuqlar",ach_title:"Yutuqlar",ach_close:"Yopish",ach_on:"Ochilgan",ach_off:"Ochilmagan",ach_count:"Ochilgan: {n}/{m}",ach_toast:"Yutuq ochildi: {n}",
+ win_time:"Sizning vaqtingiz: {t}",win_best:"Eng yaxshi vaqt: {t}",win_new:"Yangi rekord!",
+ a_first_n:"Birinchi tosh",a_first_d:"Birinchi yorug’lik toshini toping.",a_all_n:"Besh tosh",a_all_d:"Barcha 5 ta yorug’lik toshini yig’ing.",
+ a_exit_n:"O’rmondan chiqish",a_exit_d:"Darvozadan chiqib, o’yinni tugating.",a_fast_n:"Tez chiqish",a_fast_d:"O’rmondan 10 daqiqadan tezroq chiqing.",
+ a_seas_n:"To’rt fasl",a_seas_d:"O’yinni yoz, kuz, qish va bahorning har birida tugating.",a_night_n:"Tun toshi",a_night_d:"Tunda yorug’lik toshini toping.",
+ a_rain_n:"Yomg’ir toshi",a_rain_d:"Yomg’ir paytida yorug’lik toshini toping."}},
 ru:{name:"Русский",t:{
  bat_aria:"Заряд фонаря",bat_low:"Фонарь тускнеет. Светящийся камень или светлячки его подзарядят",m_calm:"Спокойный режим",m_calm_d:"Если включить, заряд фонаря не убывает.",calm_on:"Включён",calm_off:"Выключен",
  title:"Таинственный лес",intro:"В окутанном туманом лесу найдите 5 светящихся камней. Когда все камни будут собраны, откроются ворота выхода.",
@@ -250,7 +293,13 @@ ru:{name:"Русский",t:{
  tod0:"Рассвет",tod1:"День",tod2:"Вечер",tod3:"Ночь",w_rain:"Дождь",w_snow:"Снег",
  season_summer:"Лето",season_autumn:"Осень",season_winter:"Зима",season_spring:"Весна",
  qd_low:"Меньше деревьев и животных, туман ближе. Для медленных телефонов.",qd_mid:"Сбалансированное качество. Подходит для большинства телефонов.",qd_high:"Самое красивое: больше деревьев и животных, дальше обзор.",
- tut_walk_c:"Лес зовёт вас вперёд. Идите, нажимая клавиши WASD.",tut_walk_t:"Лес зовёт вас вперёд. Идите с помощью левого джойстика.",tut_look_c:"Осмотритесь: зажмите кнопку мыши и двигайте ею.",tut_look_t:"Осмотритесь: проведите пальцем по правой части экрана.",tut_goal:"В лесу спрятаны светящиеся камни: издалека их выдаёт столб света. Расстояние до ближайшего камня указано вверху.",tut_gate:"Когда все камни будут собраны, ворота выхода откроются. Дойдите до них.",tut_skip:"Пропустить",m_tut:"Посмотреть обучение ещё раз",dir_n:"С",dir_e:"В",dir_s:"Ю",dir_w:"З"}},
+ tut_walk_c:"Лес зовёт вас вперёд. Идите, нажимая клавиши WASD.",tut_walk_t:"Лес зовёт вас вперёд. Идите с помощью левого джойстика.",tut_look_c:"Осмотритесь: зажмите кнопку мыши и двигайте ею.",tut_look_t:"Осмотритесь: проведите пальцем по правой части экрана.",tut_goal:"В лесу спрятаны светящиеся камни: издалека их выдаёт столб света. Расстояние до ближайшего камня указано вверху.",tut_gate:"Когда все камни будут собраны, ворота выхода откроются. Дойдите до них.",tut_skip:"Пропустить",m_tut:"Посмотреть обучение ещё раз",dir_n:"С",dir_e:"В",dir_s:"Ю",dir_w:"З",
+ ach_btn:"Достижения",ach_title:"Достижения",ach_close:"Закрыть",ach_on:"Открыто",ach_off:"Не открыто",ach_count:"Открыто: {n} из {m}",ach_toast:"Достижение открыто: {n}",
+ win_time:"Ваше время: {t}",win_best:"Лучшее время: {t}",win_new:"Новый рекорд!",
+ a_first_n:"Первый камень",a_first_d:"Найдите первый светящийся камень.",a_all_n:"Пять камней",a_all_d:"Соберите все 5 светящихся камней.",
+ a_exit_n:"Выход из леса",a_exit_d:"Пройдите через ворота и завершите игру.",a_fast_n:"Быстрый выход",a_fast_d:"Выйдите из леса быстрее чем за 10 минут.",
+ a_seas_n:"Четыре времени года",a_seas_d:"Завершите игру летом, осенью, зимой и весной.",a_night_n:"Ночной камень",a_night_d:"Найдите светящийся камень ночью.",
+ a_rain_n:"Камень под дождём",a_rain_d:"Найдите светящийся камень во время дождя."}},
 en:{name:"English",t:{
  bat_aria:"Lantern power",bat_low:"The lantern is fading. A glowing stone or fireflies will refill it",m_calm:"Calm mode",m_calm_d:"When on, the lantern never loses power.",calm_on:"On",calm_off:"Off",
  title:"The Mysterious Forest",intro:"Find 5 glowing stones in the fog-shrouded forest. When all of them are gathered, the exit gate will open.",
@@ -264,7 +313,13 @@ en:{name:"English",t:{
  tod0:"Dawn",tod1:"Day",tod2:"Dusk",tod3:"Night",w_rain:"Rain",w_snow:"Snow",
  season_summer:"Summer",season_autumn:"Autumn",season_winter:"Winter",season_spring:"Spring",
  qd_low:"Fewer trees and animals, closer fog. For slower phones.",qd_mid:"Balanced quality. Suits most phones.",qd_high:"The prettiest: more trees and animals, a longer view.",
- tut_walk_c:"The forest calls you onward. Walk with the WASD keys.",tut_walk_t:"The forest calls you onward. Walk with the joystick on the left.",tut_look_c:"Look around: hold the mouse button and drag.",tut_look_t:"Look around: swipe on the right side of the screen.",tut_goal:"Glowing stones hide in the forest: each one shows itself from afar as a pillar of light. The distance to the nearest stone appears at the top.",tut_gate:"When every stone is gathered, the exit gate will open. Make your way to it.",tut_skip:"Skip",m_tut:"Replay the tutorial",dir_n:"N",dir_e:"E",dir_s:"S",dir_w:"W"}},
+ tut_walk_c:"The forest calls you onward. Walk with the WASD keys.",tut_walk_t:"The forest calls you onward. Walk with the joystick on the left.",tut_look_c:"Look around: hold the mouse button and drag.",tut_look_t:"Look around: swipe on the right side of the screen.",tut_goal:"Glowing stones hide in the forest: each one shows itself from afar as a pillar of light. The distance to the nearest stone appears at the top.",tut_gate:"When every stone is gathered, the exit gate will open. Make your way to it.",tut_skip:"Skip",m_tut:"Replay the tutorial",dir_n:"N",dir_e:"E",dir_s:"S",dir_w:"W",
+ ach_btn:"Achievements",ach_title:"Achievements",ach_close:"Close",ach_on:"Unlocked",ach_off:"Locked",ach_count:"Unlocked: {n}/{m}",ach_toast:"Achievement unlocked: {n}",
+ win_time:"Your time: {t}",win_best:"Best time: {t}",win_new:"New record!",
+ a_first_n:"First Stone",a_first_d:"Find your first glowing stone.",a_all_n:"All Five",a_all_d:"Collect all 5 glowing stones.",
+ a_exit_n:"Out of the Forest",a_exit_d:"Walk through the gate and finish the game.",a_fast_n:"Swift Escape",a_fast_d:"Leave the forest in under 10 minutes.",
+ a_seas_n:"Four Seasons",a_seas_d:"Finish the game in summer, autumn, winter and spring.",a_night_n:"Night Stone",a_night_d:"Find a glowing stone at night.",
+ a_rain_n:"Rain Stone",a_rain_d:"Find a glowing stone while it is raining."}},
 tr:{name:"Türkçe",t:{
  bat_aria:"Fener gücü",bat_low:"Fener sönükleşiyor. Işık taşı veya ateşböcekleri onu yeniler",m_calm:"Sakin mod",m_calm_d:"Açıkken fenerin gücü azalmaz.",calm_on:"Açık",calm_off:"Kapalı",
  title:"Gizemli Orman",intro:"Sisle kaplı ormanda 5 ışık taşı bulun. Hepsi toplandığında çıkış kapısı açılır.",
@@ -278,7 +333,13 @@ tr:{name:"Türkçe",t:{
  tod0:"Şafak",tod1:"Gündüz",tod2:"Akşam",tod3:"Gece",w_rain:"Yağmur",w_snow:"Kar",
  season_summer:"Yaz",season_autumn:"Sonbahar",season_winter:"Kış",season_spring:"İlkbahar",
  qd_low:"Daha az ağaç ve hayvan, sis daha yakın. Yavaş telefonlar için.",qd_mid:"Dengeli kalite. Çoğu telefona uygun.",qd_high:"En güzel görünüm: daha çok ağaç ve hayvan, daha uzak görüş.",
- tut_walk_c:"Orman sizi ileri çağırıyor. WASD tuşlarıyla yürüyün.",tut_walk_t:"Orman sizi ileri çağırıyor. Soldaki joystick ile yürüyün.",tut_look_c:"Etrafa göz atın: fare tuşunu basılı tutup sürükleyin.",tut_look_t:"Etrafa göz atın: ekranın sağ tarafını kaydırın.",tut_goal:"Ormanda ışık taşları saklı: uzaktan bir ışık sütunu olarak görünürler. En yakın taşın uzaklığı yukarıda yazar.",tut_gate:"Tüm taşlar toplandığında çıkış kapısı açılır. Ona ulaşın.",tut_skip:"Atla",m_tut:"Eğitimi yeniden göster",dir_n:"K",dir_e:"D",dir_s:"G",dir_w:"B"}},
+ tut_walk_c:"Orman sizi ileri çağırıyor. WASD tuşlarıyla yürüyün.",tut_walk_t:"Orman sizi ileri çağırıyor. Soldaki joystick ile yürüyün.",tut_look_c:"Etrafa göz atın: fare tuşunu basılı tutup sürükleyin.",tut_look_t:"Etrafa göz atın: ekranın sağ tarafını kaydırın.",tut_goal:"Ormanda ışık taşları saklı: uzaktan bir ışık sütunu olarak görünürler. En yakın taşın uzaklığı yukarıda yazar.",tut_gate:"Tüm taşlar toplandığında çıkış kapısı açılır. Ona ulaşın.",tut_skip:"Atla",m_tut:"Eğitimi yeniden göster",dir_n:"K",dir_e:"D",dir_s:"G",dir_w:"B",
+ ach_btn:"Başarımlar",ach_title:"Başarımlar",ach_close:"Kapat",ach_on:"Açıldı",ach_off:"Kilitli",ach_count:"Açılan: {n}/{m}",ach_toast:"Başarım açıldı: {n}",
+ win_time:"Süreniz: {t}",win_best:"En iyi süre: {t}",win_new:"Yeni rekor!",
+ a_first_n:"İlk taş",a_first_d:"İlk ışık taşını bulun.",a_all_n:"Beş taş",a_all_d:"5 ışık taşının hepsini toplayın.",
+ a_exit_n:"Ormandan çıkış",a_exit_d:"Kapıdan geçip oyunu bitirin.",a_fast_n:"Hızlı çıkış",a_fast_d:"Ormandan 10 dakikadan kısa sürede çıkın.",
+ a_seas_n:"Dört mevsim",a_seas_d:"Oyunu yaz, sonbahar, kış ve ilkbaharın her birinde bitirin.",a_night_n:"Gece taşı",a_night_d:"Geceleyin bir ışık taşı bulun.",
+ a_rain_n:"Yağmur taşı",a_rain_d:"Yağmur yağarken bir ışık taşı bulun."}},
 ko:{name:"한국어",t:{
  bat_aria:"랜턴 전력",bat_low:"랜턴이 희미해지고 있어요. 빛나는 돌이나 반딧불이가 다시 채워 줍니다",m_calm:"고요 모드",m_calm_d:"켜면 랜턴 전력이 줄어들지 않습니다.",calm_on:"켜짐",calm_off:"꺼짐",
  title:"신비의 숲",intro:"안개 낀 숲에서 빛나는 돌 5개를 찾으세요. 모두 모으면 출구 문이 열립니다.",
@@ -292,7 +353,13 @@ ko:{name:"한국어",t:{
  tod0:"새벽",tod1:"낮",tod2:"저녁",tod3:"밤",w_rain:"비",w_snow:"눈",
  season_summer:"여름",season_autumn:"가을",season_winter:"겨울",season_spring:"봄",
  qd_low:"나무와 동물이 적고 안개가 가깝습니다. 느린 휴대폰용입니다.",qd_mid:"균형 잡힌 품질입니다. 대부분의 휴대폰에 적합합니다.",qd_high:"가장 아름다운 설정: 나무와 동물이 많고 시야가 더 멉니다.",
- tut_walk_c:"숲이 당신을 앞으로 부릅니다. WASD 키로 걸어 보세요.",tut_walk_t:"숲이 당신을 앞으로 부릅니다. 왼쪽 조이스틱으로 걸어 보세요.",tut_look_c:"주위를 둘러보세요. 마우스 버튼을 누른 채 움직이세요.",tut_look_t:"주위를 둘러보세요. 화면 오른쪽을 밀어 보세요.",tut_goal:"숲 속에 빛나는 돌이 숨어 있습니다: 멀리서도 빛기둥으로 보입니다. 가장 가까운 돌까지의 거리는 위쪽에 표시됩니다.",tut_gate:"모든 돌을 모으면 출구 문이 열립니다. 그곳으로 가세요.",tut_skip:"건너뛰기",m_tut:"튜토리얼 다시 보기",dir_n:"북",dir_e:"동",dir_s:"남",dir_w:"서"}}
+ tut_walk_c:"숲이 당신을 앞으로 부릅니다. WASD 키로 걸어 보세요.",tut_walk_t:"숲이 당신을 앞으로 부릅니다. 왼쪽 조이스틱으로 걸어 보세요.",tut_look_c:"주위를 둘러보세요. 마우스 버튼을 누른 채 움직이세요.",tut_look_t:"주위를 둘러보세요. 화면 오른쪽을 밀어 보세요.",tut_goal:"숲 속에 빛나는 돌이 숨어 있습니다: 멀리서도 빛기둥으로 보입니다. 가장 가까운 돌까지의 거리는 위쪽에 표시됩니다.",tut_gate:"모든 돌을 모으면 출구 문이 열립니다. 그곳으로 가세요.",tut_skip:"건너뛰기",m_tut:"튜토리얼 다시 보기",dir_n:"북",dir_e:"동",dir_s:"남",dir_w:"서",
+ ach_btn:"업적",ach_title:"업적",ach_close:"닫기",ach_on:"달성",ach_off:"미달성",ach_count:"달성: {n}/{m}",ach_toast:"업적 달성: {n}",
+ win_time:"내 기록: {t}",win_best:"최고 기록: {t}",win_new:"신기록!",
+ a_first_n:"첫 번째 돌",a_first_d:"첫 번째 빛나는 돌을 찾으세요.",a_all_n:"다섯 개의 돌",a_all_d:"빛나는 돌 5개를 모두 모으세요.",
+ a_exit_n:"숲 탈출",a_exit_d:"문을 통과해 게임을 끝내세요.",a_fast_n:"빠른 탈출",a_fast_d:"10분 안에 숲을 빠져나오세요.",
+ a_seas_n:"사계절",a_seas_d:"여름, 가을, 겨울, 봄 각각에서 게임을 끝내세요.",a_night_n:"밤의 돌",a_night_d:"밤에 빛나는 돌을 찾으세요.",
+ a_rain_n:"빗속의 돌",a_rain_d:"비가 오는 동안 빛나는 돌을 찾으세요."}}
 };
 let LANG="uz";
 function tr(k,v){
@@ -465,6 +532,7 @@ let TN=trees.length; // hozir ishlatilayotgan daraxtlar soni (sifatga qarab)
 
 const player=new T.Vector3(0,1.7,0);
 let yaw=0,pitch=0,running=false,found=0;
+let playT=0; // o’yin vaqti (soniya): faqat o’yin yurib turganda hisoblanadi (menyuda to’xtaydi)
 const keys={};
 let jx=0,jy=0;
 const countEl=document.getElementById("count"),hintEl=document.getElementById("hint");
@@ -1397,6 +1465,7 @@ function updateCompass(){
 
 addEventListener("keydown",function(e){
   if(e.code==="Escape"){
+    if(ytIsOpen()){ytClose();return;}
     if(paused)closeMenu();
     else if(document.getElementById("win").classList.contains("hide"))openMenu(null);
     return;
@@ -1490,7 +1559,7 @@ function applyLang(){
   countEl.textContent=tr("count",{n:found});
   hintTxt="";setHint(hintKey,hintVars);
   wLbl="";
-  applyMute();resetRestart();resetNewArm();syncMenu();
+  applyMute();resetRestart();resetNewArm();syncMenu();ytLang();
   if(tutOn)tutText();
   dirty=true;
 }
@@ -1664,7 +1733,7 @@ function saveGame(){
   if(!running||saveOff)return;
   lastSave=performance.now();
   try{
-    localStorage.setItem(GKEY,JSON.stringify({v:SAVE_VER,px:rd3(player.x),pz:rd3(player.z),yaw:rd3(yaw),pitch:rd3(pitch),tc:rd3(tcyc%1),got:stones.map(function(s){return !!s.got;}),wx:wName,bat:rd3(bat)}));
+    localStorage.setItem(GKEY,JSON.stringify({v:SAVE_VER,px:rd3(player.x),pz:rd3(player.z),yaw:rd3(yaw),pitch:rd3(pitch),tc:rd3(tcyc%1),got:stones.map(function(s){return !!s.got;}),wx:wName,bat:rd3(bat),el:rd3(playT)}));
   }catch(e){}
 }
 function wipeSave(){try{localStorage.removeItem(GKEY);}catch(e){}}
@@ -1696,6 +1765,7 @@ function applySaved(o){
     yaw=o.yaw;pitch=Math.max(-1.4,Math.min(1.4,o.pitch));
     tcyc=Math.min(1,Math.max(0,o.tc));
     bat=Math.min(1,Math.max(0,o.bat));batS=bat;
+    playT=(typeof o.el==="number"&&isFinite(o.el)&&o.el>0)?Math.min(o.el,360000):0; // oldingi o’yin vaqti
     found=0;
     stones.forEach(function(s,i){if(o.got[i]){s.got=true;s.g.visible=false;found++;}});
     countEl.textContent=tr("count",{n:found});
@@ -1732,6 +1802,130 @@ document.addEventListener("visibilitychange",function(){if(document.hidden)saveG
 addEventListener("pagehide",saveGame);
 /* ---------- SAQLASH TUGADI ---------- */
 
+/* ---------- REKORD VA YUTUQLAR ---------- */
+// Rekord va yutuqlar o’yin saqlashidan ALOHIDA kalitda saqlanadi: "Yangi o’yin" yoki o’yin tugaganda ular o’chmaydi.
+// Yutuq qo’shish: YUT ro’yxatiga nom yozing, TILLAR ga a_<nom>_n (nomi) va a_<nom>_d (tavsifi) qo’shing,
+// va kerakli joyda ytUnlock("<nom>") chaqiring.
+const YKEY="sirli-ormon-yutuqlar-v1";
+const YUT=["first","all","exit","fast","seas","night","rain"];
+const REK={best:0,got:{},seas:{}}; // best — eng yaxshi vaqt (soniya), 0 = hali yo’q
+let ytDirty=false,winSecs=0,winNew=false,winOn=false;
+(function(){
+  try{
+    const raw=localStorage.getItem(YKEY);
+    if(!raw)return;
+    const o=JSON.parse(raw);
+    if(!o||typeof o!=="object")return;
+    if(typeof o.best==="number"&&isFinite(o.best)&&o.best>0)REK.best=Math.floor(o.best);
+    for(let i=0;i<YUT.length;i++)if(o.got&&o.got[YUT[i]]===true)REK.got[YUT[i]]=true;
+    const ks=Object.keys(SEA);
+    for(let i=0;i<ks.length;i++)if(o.seas&&o.seas[ks[i]]===true)REK.seas[ks[i]]=true;
+  }catch(e){}
+})();
+function ytSave(){
+  ytDirty=false;
+  try{localStorage.setItem(YKEY,JSON.stringify({v:1,best:REK.best,got:REK.got,seas:REK.seas}));}catch(e){}
+}
+function ytFmt(s){ // soniya -> daqiqa:soniya
+  if(!(s>0))return "--:--";
+  s=Math.floor(s);
+  const m=Math.floor(s/60),r=s%60;
+  return (m<10?"0":"")+m+":"+(r<10?"0":"")+r;
+}
+// Yutuq xabari: ekran tepasida 3 soniya turadi, bir nechta bo’lsa navbat bilan chiqadi. Bosishlarga xalaqit bermaydi.
+const ytToast=document.getElementById("achtoast"),ytTx=document.getElementById("achtx");
+const ytQ=[];
+let ytBusy=false;
+function ytShow(){
+  if(!ytQ.length){ytBusy=false;return;}
+  ytBusy=true;
+  const id=ytQ.shift();
+  ytTx.textContent=tr("ach_toast",{n:tr("a_"+id+"_n")});
+  ytToast.classList.add("on");
+  setTimeout(function(){
+    ytToast.classList.remove("on");
+    setTimeout(ytShow,400);
+  },3000);
+}
+function ytUnlock(id){
+  if(REK.got[id]===true)return;
+  REK.got[id]=true;ytDirty=true;
+  ytQ.push(id);
+  if(!ytBusy)ytShow();
+}
+// Tosh topilganda (tick ichidan, found yangilangandan keyin chaqiriladi)
+function ytStone(){
+  try{
+    ytUnlock("first");
+    if(found>=stones.length)ytUnlock("all");
+    if(todTxt==="tod3")ytUnlock("night");   // ekranda "Tun" yozuvi turganda
+    if(wx.rain>0.5)ytUnlock("rain");        // yomg’ir yoki momaqaldiroq paytida
+  }catch(e){}
+  if(ytDirty)ytSave();
+}
+// Darvozadan chiqilganda
+function ytWin(){
+  const secs=Math.max(1,Math.floor(playT));
+  winSecs=secs;winNew=false;
+  try{
+    if(!(REK.best>0)||secs<REK.best){REK.best=secs;winNew=true;}
+    REK.seas[S.id]=true;ytDirty=true;
+    ytUnlock("exit");
+    if(secs<600)ytUnlock("fast");
+    if(Object.keys(SEA).every(function(k){return REK.seas[k]===true;}))ytUnlock("seas");
+  }catch(e){}
+  ytSave();
+  winOn=true;
+  try{ytRenderWin();}catch(e){}
+}
+function ytRenderWin(){
+  document.getElementById("wtime").textContent=tr("win_time",{t:ytFmt(winSecs)});
+  document.getElementById("wbest").textContent=tr("win_best",{t:ytFmt(REK.best)});
+  document.getElementById("wnew").hidden=!winNew;
+}
+// Yutuqlar oynasi
+const ytOv=document.getElementById("ach"),ytList=document.getElementById("alist"),ytBest=document.getElementById("abest"),ytCnt=document.getElementById("acnt"),ytCloseB=document.getElementById("aclose");
+let ytFrom=null;
+function ytIsOpen(){return !ytOv.classList.contains("hide");}
+function ytRender(){
+  let n=0;
+  const frag=document.createDocumentFragment();
+  YUT.forEach(function(id){
+    const on=REK.got[id]===true;if(on)n++;
+    const li=document.createElement("li");li.className=on?"on":"off";
+    const d=document.createElement("div");d.className="at";
+    const b=document.createElement("b");b.textContent=tr("a_"+id+"_n");
+    const sm=document.createElement("small");sm.textContent=tr("a_"+id+"_d");
+    d.appendChild(b);d.appendChild(sm);
+    const t=document.createElement("span");t.className="stt";t.textContent=tr(on?"ach_on":"ach_off");
+    li.appendChild(d);li.appendChild(t);frag.appendChild(li);
+  });
+  ytList.textContent="";ytList.appendChild(frag);
+  ytBest.textContent=tr("win_best",{t:ytFmt(REK.best)});
+  ytCnt.textContent=tr("ach_count",{n:n,m:YUT.length});
+}
+function ytOpen(from){
+  ytRender();
+  ytFrom=from||document.activeElement;
+  ytOv.classList.remove("hide");
+  ytCloseB.focus();
+}
+function ytClose(){
+  if(!ytIsOpen())return;
+  ytOv.classList.add("hide");
+  if(ytFrom&&ytFrom.focus){try{ytFrom.focus();}catch(e){}}
+}
+function ytLang(){ // til almashganda ochiq oynalar matni yangilanadi
+  if(ytIsOpen())ytRender();
+  if(winOn)ytRenderWin();
+}
+document.getElementById("achS").onclick=function(){ytOpen(this);};
+document.getElementById("machB").onclick=function(){ytOpen(this);};
+ytCloseB.onclick=ytClose;
+ytOv.addEventListener("click",function(e){if(e.target===ytOv)ytClose();});
+ytOv.addEventListener("keydown",function(e){if(e.key==="Tab"){e.preventDefault();ytCloseB.focus();}});
+/* ---------- REKORD VA YUTUQLAR TUGADI ---------- */
+
 let last=performance.now();
 function tick(now){
   requestAnimationFrame(tick);
@@ -1752,6 +1946,7 @@ function tick(now){
     }
   }
   if(running){
+    playT+=Math.min(rawMs,250)/1000;
     tcyc+=dt/CYCLE*(1-(S.dl||0)*(dayV-0.5)*2);
     ambientTick(dt);
     let f=(keys.KeyW||keys.ArrowUp?1:0)-(keys.KeyS||keys.ArrowDown?1:0)-jy;
@@ -1791,13 +1986,14 @@ function tick(now){
         stoneSound(found);
         if(found===5){gate.visible=true;gateSound(0.7);}
         saveGame(); // tosh topildi: darhol saqlaymiz
+        ytStone();
       }
     }
     if(found<5){setHint("h_stone",{d:Math.round(nearest)});}
     else{
       const gd=Math.hypot(player.x-gate.position.x,player.z-gate.position.z);
       setHint("h_gate",{d:Math.round(gd)});
-      if(gd<2.2){running=false;clearSave();winSound();document.getElementById("win").classList.remove("hide");}
+      if(gd<2.2){running=false;clearSave();winSound();ytWin();document.getElementById("win").classList.remove("hide");}
     }
   }
   for(const s2 of stones){s2.s.rotation.y+=dt;s2.s.position.y=1.2+Math.sin(now*0.003)*0.15;}

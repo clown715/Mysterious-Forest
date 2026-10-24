@@ -1,6 +1,6 @@
 // Sirli o’rmon — service worker (internetsiz ishlash uchun)
 // Fayllarni o’zgartirsangiz, quyidagi raqamni oshiring (v1 -> v2).
-const CACHE = "sirli-ormon-v8";
+const CACHE = "sirli-ormon-v9";
 const THREE_URL = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
 const LOCAL = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
 

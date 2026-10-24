@@ -70,6 +70,10 @@ button.warn{border-color:#ff9a7a;color:#ffb49c}
   #compass{top:calc(env(safe-area-inset-top,0px) + 20px);width:52px;height:52px;margin-left:-26px}
   #hintbar{top:calc(env(safe-area-inset-top,0px) + 20px + 52px + 4px)}
 }
+/* Kompas o’chirilganda */
+#compass.hide{display:none}
+html.nocmp #hintbar{top:calc(env(safe-area-inset-top,0px) + 22px)}
+button[hidden]{display:none!important}
 
 /* Sozlamalar menyusi */
 #menu{z-index:8;background:rgba(6,12,10,.9)}
@@ -148,6 +152,8 @@ button.warn{border-color:#ff9a7a;color:#ffb49c}
   <h1 data-i="title">Sirli o’rmon</h1>
   <p data-i="intro">Tuman bosgan o’rmonda 5 ta yorug’lik toshini toping. Hammasi yig’ilganda chiqish darvozasi ochiladi.</p>
   <button id="go" data-i="start">Boshlash</button>
+  <button id="cont" data-i="cont" hidden>Davom etish</button>
+  <button id="newg" class="ghost" data-i="newg" hidden>Yangi o’yin</button>
   <button id="set2" class="ghost" type="button" data-i="settings">Sozlamalar</button>
   <div class="langs" id="langs1" role="group" aria-label="Til / Language"></div>
   <p class="small" data-i="controls">Kompyuter: WASD bilan yuring, R — yomg’irni sinash, sichqonchani bosib surib qarang, M — ovozni o’chirish, Esc — sozlamalar. Telefon: chapda harakat, o’ngda qarash.</p>
@@ -165,6 +171,8 @@ button.warn{border-color:#ff9a7a;color:#ffb49c}
     <div class="row"><span data-i="m_sound">Tovush</span><button id="mmute" type="button" aria-pressed="true">Ovoz: yoqilgan</button></div>
     <div class="row"><span data-i="m_calm">Sokin rejim</span><button id="mcalm" type="button" aria-pressed="false">O’chiq</button></div>
     <p class="sub" data-i="m_calm_d">Yoqilsa, fonar quvvati kamaymaydi.</p>
+    <div class="row"><span data-i="m_compass">Kompas</span><button id="mcomp" type="button" aria-pressed="true">Yoqilgan</button></div>
+    <div class="row"><span data-i="m_softl">Chaqmoq effektini kamaytirish</span><button id="msoft" type="button" aria-pressed="false">O’chiq</button></div>
     <div class="row"><label for="sens" data-i="m_sens">Qarash sezgirligi</label><output id="sensv">100%</output></div>
     <input type="range" id="sens" min="40" max="200" step="5" value="100">
     <div class="row"><span id="qlbl" data-i="m_gfx">Grafika sifati</span></div>
@@ -220,7 +228,7 @@ uz:{name:"O’zbekcha",t:{
  title:"Sirli o’rmon",intro:"Tuman bosgan o’rmonda 5 ta yorug’lik toshini toping. Hammasi yig’ilganda chiqish darvozasi ochiladi.",
  start:"Boshlash",settings:"Sozlamalar",controls:"Kompyuter: WASD bilan yuring, R — yomg’irni sinash, sichqonchani bosib surib qarang, M — ovozni o’chirish, Esc — sozlamalar. Telefon: chapda harakat, o’ngda qarash.",
  win_title:"O’rmondan chiqdingiz",win_text:"Barcha toshlarni topib, yo’lni ochdingiz.",again:"Qayta o’ynash",
- m_title:"Sozlamalar",m_vol:"Umumiy tovush",m_sound:"Tovush",m_sens:"Qarash sezgirligi",m_gfx:"Grafika sifati",q_low_b:"Past",q_mid_b:"O’rta",q_high_b:"Yuqori",
+ m_title:"Sozlamalar",cont:"Davom etish",newg:"Yangi o’yin",newg_sure:"Eski saqlash o’chadi. Yana bosing",m_softl:"Chaqmoq effektini kamaytirish",w_storm:"Momaqaldiroq",m_compass:"Kompas",m_vol:"Umumiy tovush",m_sound:"Tovush",m_sens:"Qarash sezgirligi",m_gfx:"Grafika sifati",q_low_b:"Past",q_mid_b:"O’rta",q_high_b:"Yuqori",
  m_season:"Fasl",m_lang:"Til",m_close:"Davom etish",m_restart:"O’yinni qayta boshlash",m_sure:"Ishonchingiz komilmi? Yana bosing",
  toast:"O’yin sekin ishlayotganga o’xshaydi. Grafikani pastga tushiraymi?",toast_yes:"Ha, tushir",toast_no:"Yo’q",
  snd_aria:"Ovozni yoqish yoki o’chirish",snd_on:"Ovoz: yoqilgan",snd_off:"Ovoz: o’chiq",
@@ -234,7 +242,7 @@ ru:{name:"Русский",t:{
  title:"Таинственный лес",intro:"В окутанном туманом лесу найдите 5 светящихся камней. Когда все камни будут собраны, откроются ворота выхода.",
  start:"Начать",settings:"Настройки",controls:"Компьютер: ходите клавишами WASD, R — проверить дождь, осматривайтесь мышью, M — выключить звук, Esc — настройки. Телефон: слева движение, справа обзор.",
  win_title:"Вы вышли из леса",win_text:"Вы нашли все камни и открыли путь.",again:"Играть снова",
- m_title:"Настройки",m_vol:"Общая громкость",m_sound:"Звук",m_sens:"Чувствительность обзора",m_gfx:"Качество графики",q_low_b:"Низкое",q_mid_b:"Среднее",q_high_b:"Высокое",
+ m_title:"Настройки",cont:"Продолжить",newg:"Новая игра",newg_sure:"Сохранение будет удалено. Нажмите ещё раз",m_softl:"Смягчить эффект молнии",w_storm:"Гроза",m_compass:"Компас",m_vol:"Общая громкость",m_sound:"Звук",m_sens:"Чувствительность обзора",m_gfx:"Качество графики",q_low_b:"Низкое",q_mid_b:"Среднее",q_high_b:"Высокое",
  m_season:"Время года",m_lang:"Язык",m_close:"Продолжить",m_restart:"Начать игру заново",m_sure:"Вы уверены? Нажмите ещё раз",
  toast:"Похоже, игра работает медленно. Снизить качество графики?",toast_yes:"Да, снизить",toast_no:"Нет",
  snd_aria:"Включить или выключить звук",snd_on:"Звук: включён",snd_off:"Звук: выключен",
@@ -248,7 +256,7 @@ en:{name:"English",t:{
  title:"The Mysterious Forest",intro:"Find 5 glowing stones in the fog-shrouded forest. When all of them are gathered, the exit gate will open.",
  start:"Start",settings:"Settings",controls:"Computer: walk with WASD, R — test the rain, drag the mouse to look around, M — mute, Esc — settings. Phone: move on the left, look on the right.",
  win_title:"You escaped the forest",win_text:"You found every stone and opened the way.",again:"Play again",
- m_title:"Settings",m_vol:"Master volume",m_sound:"Sound",m_sens:"Look sensitivity",m_gfx:"Graphics quality",q_low_b:"Low",q_mid_b:"Medium",q_high_b:"High",
+ m_title:"Settings",cont:"Continue",newg:"New game",newg_sure:"Your saved game will be erased. Tap again",m_softl:"Reduce lightning effect",w_storm:"Thunderstorm",m_compass:"Compass",m_vol:"Master volume",m_sound:"Sound",m_sens:"Look sensitivity",m_gfx:"Graphics quality",q_low_b:"Low",q_mid_b:"Medium",q_high_b:"High",
  m_season:"Season",m_lang:"Language",m_close:"Resume",m_restart:"Restart the game",m_sure:"Are you sure? Tap again",
  toast:"The game seems to be running slowly. Lower the graphics?",toast_yes:"Yes, lower it",toast_no:"No",
  snd_aria:"Turn sound on or off",snd_on:"Sound: on",snd_off:"Sound: off",
@@ -262,7 +270,7 @@ tr:{name:"Türkçe",t:{
  title:"Gizemli Orman",intro:"Sisle kaplı ormanda 5 ışık taşı bulun. Hepsi toplandığında çıkış kapısı açılır.",
  start:"Başla",settings:"Ayarlar",controls:"Bilgisayar: WASD ile yürüyün, R — yağmuru deneyin, fareyi sürükleyerek etrafa bakın, M — sesi kapatın, Esc — ayarlar. Telefon: solda hareket, sağda bakış.",
  win_title:"Ormandan çıktınız",win_text:"Tüm taşları bulup yolu açtınız.",again:"Tekrar oyna",
- m_title:"Ayarlar",m_vol:"Genel ses",m_sound:"Ses",m_sens:"Bakış hassasiyeti",m_gfx:"Grafik kalitesi",q_low_b:"Düşük",q_mid_b:"Orta",q_high_b:"Yüksek",
+ m_title:"Ayarlar",cont:"Devam et",newg:"Yeni oyun",newg_sure:"Kayıtlı oyun silinecek. Tekrar dokunun",m_softl:"Şimşek efektini azalt",w_storm:"Fırtına",m_compass:"Pusula",m_vol:"Genel ses",m_sound:"Ses",m_sens:"Bakış hassasiyeti",m_gfx:"Grafik kalitesi",q_low_b:"Düşük",q_mid_b:"Orta",q_high_b:"Yüksek",
  m_season:"Mevsim",m_lang:"Dil",m_close:"Devam et",m_restart:"Oyunu yeniden başlat",m_sure:"Emin misiniz? Tekrar dokunun",
  toast:"Oyun yavaş çalışıyor gibi görünüyor. Grafikleri düşüreyim mi?",toast_yes:"Evet, düşür",toast_no:"Hayır",
  snd_aria:"Sesi aç veya kapat",snd_on:"Ses: açık",snd_off:"Ses: kapalı",
@@ -276,7 +284,7 @@ ko:{name:"한국어",t:{
  title:"신비의 숲",intro:"안개 낀 숲에서 빛나는 돌 5개를 찾으세요. 모두 모으면 출구 문이 열립니다.",
  start:"시작",settings:"설정",controls:"컴퓨터: WASD로 이동, R — 비 테스트, 마우스를 끌어 둘러보기, M — 소리 끄기, Esc — 설정. 휴대폰: 왼쪽은 이동, 오른쪽은 시점 조작.",
  win_title:"숲을 빠져나왔습니다",win_text:"모든 돌을 찾아 길을 열었습니다.",again:"다시 플레이",
- m_title:"설정",m_vol:"전체 볼륨",m_sound:"소리",m_sens:"시점 감도",m_gfx:"그래픽 품질",q_low_b:"낮음",q_mid_b:"보통",q_high_b:"높음",
+ m_title:"설정",cont:"이어하기",newg:"새 게임",newg_sure:"저장된 게임이 삭제됩니다. 한 번 더 누르세요",m_softl:"번개 효과 줄이기",w_storm:"뇌우",m_compass:"나침반",m_vol:"전체 볼륨",m_sound:"소리",m_sens:"시점 감도",m_gfx:"그래픽 품질",q_low_b:"낮음",q_mid_b:"보통",q_high_b:"높음",
  m_season:"계절",m_lang:"언어",m_close:"계속하기",m_restart:"게임 다시 시작",m_sure:"정말입니까? 한 번 더 누르세요",
  toast:"게임이 느리게 실행되는 것 같습니다. 그래픽 품질을 낮출까요?",toast_yes:"네, 낮출게요",toast_no:"아니요",
  snd_aria:"소리 켜기 또는 끄기",snd_on:"소리: 켜짐",snd_off:"소리: 꺼짐",
@@ -304,7 +312,7 @@ function autoLang(){ // telefon tiliga qarab; aniqlanmasa o’zbek
 
 /* ---------- SOZLAMALAR (brauzerda saqlanadi) ---------- */
 const SKEY="sirli-ormon-sozlamalar-v1";
-const st={vol:60,mute:false,sens:100,q:"",sug:false,season:"summer",lang:"",tut:false,calm:false};
+const st={vol:60,mute:false,sens:100,q:"",sug:false,season:"summer",lang:"",tut:false,calm:false,compass:true,softL:(function(){try{return !!matchMedia("(prefers-reduced-motion:reduce)").matches;}catch(e){return false;}})()};
 try{
   const raw=localStorage.getItem(SKEY);
   if(raw){
@@ -319,6 +327,8 @@ try{
       if(typeof o.tut==="boolean")st.tut=o.tut;
       if(typeof o.sug==="boolean")st.sug=o.sug;
       if(typeof o.calm==="boolean")st.calm=o.calm;
+      if(typeof o.compass==="boolean")st.compass=o.compass;
+      if(typeof o.softL==="boolean")st.softL=o.softL;
     }
   }
 }catch(e){}
@@ -351,11 +361,11 @@ const SEA={
   summer:{id:"summer",name:"Yoz",ground:0x1c4a2a,pal:[0x1f5a33,0x246b3a,0x1a4f2e,0x2a7a40,0x1d5f35],tint:0xf6e6c0,tintA:0.08,fog:0.85,light:1.1,sun:1.25,warm:0.6,dl:0.3,
     an:1.1,fx:2,fa:0.55,cr:1.8,bd:1,ff:1.7,bg:1.2,spots:1,
     leaf:0,leafCols:[],rust:0,cold:0,sf:1,stone:0x7ff0d0,ss:1.2,ring:0xffc46b,pre:"rain",
-    wa:{clear:{next:"rain",dur:[120,240]},rain:{next:"clear",dur:[60,120]}}},
+    wa:{clear:{next:"rain",dur:[120,240]},rain:{next:"clear",dur:[60,120],alt:{to:"storm",p:0.4}},storm:{next:"rain",alt:{to:"clear",p:0.4},dur:[40,90]}}},
   autumn:{id:"autumn",name:"Kuz",ground:0x4a3a1e,pal:[0xe8b423,0xe0701a,0xc0301a,0xd99a1c,0x9a5a1a,0xf0d040],
     tint:0xaab8c4,tintA:0.2,fog:1.15,light:0.92,an:1.25,cr:0.5,bd:0.7,
     leaf:1,leafCols:[0xf0b020,0xe0701a,0xd03a1a,0xc98a1b,0xf2d24a],rust:0.06,cold:0.03,sf:1.6,stone:0x35ffe6,ss:1.4,ring:0xfff6d8,pre:"rain",
-    wa:{clear:{next:"rain",dur:[50,110]},rain:{next:"clear",dur:[70,130]}}},
+    wa:{clear:{next:"rain",dur:[50,110]},rain:{next:"clear",dur:[70,130],alt:{to:"storm",p:0.15}},storm:{next:"rain",alt:{to:"clear",p:0.4},dur:[40,90]}}},
   winter:{id:"winter",name:"Qish",ground:0xdfe8ee,pal:[0xeef3f6,0xdfe8ee,0xf6f9fb],tint:0xd3dae0,tintA:0.5,fog:1.1,light:1,
     an:0.5,cr:0,bd:0.1,fl:0,leaf:0,fq:"snow",snow0:0.4,fv:1.1,fs:4,fo:0.9,leafCols:[0xffffff],rust:0,cold:0.08,sf:0.35,sl:0.6,
     stone:0x00a896,ss:1.5,ring:0xff7a00,pre:"snow",
@@ -364,7 +374,7 @@ const SEA={
     tint:0xe9ddf0,tintA:0.25,fog:1.1,mf:0.35,light:1,an:1.1,rn:1.5,bn:1.5,cr:0.7,bd:2.2,bt:0.4,
     leaf:0.6,leafCols:[0xffc4dc,0xffffff,0xffe9a0,0xffb0cf],fv:0.5,fs:5,fo:0.9,round:true,flw:1,
     rust:0.015,cold:0.035,sf:1,stone:0x00d5ff,ss:1.4,ring:0xff8a1f,pre:"rain",
-    wa:{clear:{next:"rain",dur:[55,110]},rain:{next:"clear",dur:[60,110]}}}
+    wa:{clear:{next:"rain",dur:[55,110]},rain:{next:"clear",dur:[60,110],alt:{to:"storm",p:0.3}},storm:{next:"rain",alt:{to:"clear",p:0.4},dur:[40,90]}}}
 };
 let S=SEA[SEA[st.season]?st.season:"summer"];
 
@@ -527,7 +537,7 @@ function applyTime(t){
 /* ---------- KECHA VA KUNDUZ TUGADI ---------- */
 
 /* ---------- TOVUSH (Web Audio API, tashqi fayl yo’q) ---------- */
-let AC=null,master=null,fxIn=null,noiseBuf=null,muted=st.mute,stepT=0.25;
+let AC=null,master=null,fxIn=null,noiseBuf=null,muted=st.mute,stepT=0.25,windS=null;
 const sndBtn=document.getElementById("snd"),mmute=document.getElementById("mmute");
 
 // Tovush tizimini yaratadi. Faqat "Boshlash" bosilganda chaqiriladi.
@@ -562,7 +572,8 @@ function startWind(){
   const src=AC.createBufferSource();src.buffer=b;src.loop=true;
   const bp=AC.createBiquadFilter();bp.type="bandpass";bp.frequency.value=420;bp.Q.value=0.7;
   const g=AC.createGain();g.gain.value=1.6;
-  src.connect(bp);bp.connect(g);g.connect(master);
+  windS=AC.createGain();windS.gain.value=1; // momaqaldiroqda shamol balandligini oshirish uchun
+  src.connect(bp);bp.connect(g);g.connect(windS);windS.connect(master);
   const l1=AC.createOscillator(),d1=AC.createGain();
   l1.frequency.value=0.07;d1.gain.value=220;l1.connect(d1);d1.connect(bp.frequency);
   const l2=AC.createOscillator(),d2=AC.createGain();
@@ -1022,29 +1033,29 @@ applyQuality(quality);
 // Yangi holat qo’shish uchun: WX ga yangi qator (masalan storm yoki mist) va WAUTO ga navbat qo’shing.
 // fog = tuman zichligi ko’paytmasi, light = yorug’lik ko’paytmasi, grey = osmonning kulrang tusi, rain = yomg’ir kuchi (0..1)
 const WX={
-  clear:{fog:1,light:1,grey:0,rain:0,snow:0},
-  snow:{fog:1.25,light:0.85,grey:0.3,rain:0,snow:1},
-  rain:{fog:1.4,light:0.74,grey:0.5,rain:1,snow:0}
-  // storm:{fog:1.6,light:0.6,grey:0.7,rain:1,label:" · Momaqaldiroq"},
+  clear:{fog:1,light:1,grey:0,rain:0,snow:0,storm:0},
+  snow:{fog:1.25,light:0.85,grey:0.3,rain:0,snow:1,storm:0},
+  rain:{fog:1.4,light:0.74,grey:0.5,rain:1,snow:0,storm:0},
+  storm:{fog:1.55,light:0.66,grey:0.72,rain:1,snow:0,storm:1}
   // mist:{fog:2.4,light:0.85,grey:0.3,rain:0,label:" · Qalin tuman"}
 };
 // Har holat qancha davom etadi (soniya) va keyin qaysi holat keladi
 let WAUTO={clear:{next:"rain",dur:[120,240]},rain:{next:"clear",dur:[60,120]}};
 const WTRANS=8; // holatlar orasida o’tish (soniya)
-const wx={fog:1,light:1,grey:0,rain:0,snow:0}; // hozirgi (silliq) qiymatlar
-const wFrom={fog:1,light:1,grey:0,rain:0,snow:0};
-let wName="clear",wP=1,wTimer=120+Math.random()*120,wLbl="";
+const wx={fog:1,light:1,grey:0,rain:0,snow:0,storm:0}; // hozirgi (silliq) qiymatlar
+const wFrom={fog:1,light:1,grey:0,rain:0,snow:0,storm:0};
+let wName="clear",wPrev="clear",wP=1,wTimer=120+Math.random()*120,wLbl="";
 function setWeather(name){
   if(!WX[name]||name===wName)return;
   for(const k in wFrom)wFrom[k]=wx[k];
-  wName=name;wP=0;
+  wPrev=wName;wName=name;wP=0;
   const a=WAUTO[name];wTimer=a?a.dur[0]+Math.random()*(a.dur[1]-a.dur[0]):1e9;
 }
 addEventListener("keydown",function(e){ // R — sinash uchun: yomg’irni qo’lda yoqish/o’chirish
   if(e.code==="KeyR"&&running&&!paused&&!e.repeat)setWeather(wName==="clear"?S.pre:"clear");
 });
 // Yomg’ir tomchilari: chiziqchalar, o’yinchi atrofida (o’yinchi bilan birga ko’chadi)
-const RMAX=380,RR=9,RH=10,RVX=1.2,RVY=16,RVZ=0.6;
+const RMAX=560,RR=9,RH=10,RVX=1.2,RVY=16,RVZ=0.6;
 const rd=new Float32Array(RMAX*3),rpos=new Float32Array(RMAX*6);
 const rgeo=new T.BufferGeometry();
 rgeo.setAttribute("position",new T.BufferAttribute(rpos,3));
@@ -1054,45 +1065,110 @@ rainL.frustumCulled=false;rainL.visible=false;scene.add(rainL);
 let rInit=false;
 sunM.material.transparent=true;moonM.material.transparent=true;
 const wTmp=new T.Color();
+/* ---------- MOMAQALDIROQ: chaqmoq va gumburlash ---------- */
+// Chaqmoq faqat "storm" holatida bo’ladi: har 8-20 soniyada bir marta (ba’zan ikki chaqnash ketma-ket).
+// Soniyasiga 3 tadan ko’p chaqnash bo’lmaydi. Yangi yorug’lik manbai qo’shilmagan: chaqnash faqat mavjud
+// yorug’lik (hemi) va osmon rangini qisqa muddatga o’zgartiradi, shuning uchun telefon sekinlashmaydi.
+const fCol=new T.Color(0xd5e2ff),fCol2=new T.Color(0x8a9cc4);
+const FL_KUCH=0.7;       // oddiy chaqnash kuchi (0..1). Kattaroq = yorqinroq
+const FL_YUMSHOQ=0.3;    // "Chaqmoq effektini kamaytirish" yoqilganda chaqnash kuchi
+let ltClock=0,ltNext=6;
+const ltP=[];
+// Past, yumshoq gumburlash (tashqi fayl yo’q). dist 0..1: uzoqroq bo’lsa kechroq va past tovush bilan eshitiladi
+function thunderSound(delay,dist){
+  if(!AC||!noiseBuf||!master)return;
+  try{
+    const t=AC.currentTime+delay,vol=0.9-0.55*dist,len=2.8+dist*2.2;
+    const src=AC.createBufferSource(),lp=AC.createBiquadFilter(),g=AC.createGain();
+    src.buffer=noiseBuf;src.loop=true;
+    lp.type="lowpass";lp.Q.value=0.7;
+    lp.frequency.setValueAtTime(320-140*dist,t);lp.frequency.exponentialRampToValueAtTime(70,t+len);
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.exponentialRampToValueAtTime(1.5*vol,t+0.3+dist*0.5);
+    g.gain.exponentialRampToValueAtTime(0.6*vol,t+len*0.38);
+    g.gain.exponentialRampToValueAtTime(0.95*vol,t+len*0.5);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+len);
+    src.connect(lp);lp.connect(g);g.connect(master);
+    src.start(t,Math.random()*1.5);src.stop(t+len+0.1);
+    const o=AC.createOscillator(),og=AC.createGain();
+    o.type="sine";o.frequency.setValueAtTime(58,t);o.frequency.exponentialRampToValueAtTime(38,t+len);
+    og.gain.setValueAtTime(0.0001,t);
+    og.gain.exponentialRampToValueAtTime(0.12*vol,t+0.4+dist*0.4);
+    og.gain.exponentialRampToValueAtTime(0.0001,t+len);
+    o.connect(og);og.connect(master);o.start(t);o.stop(t+len+0.1);
+  }catch(e){}
+}
+function strike(){
+  const dist=Math.random(),soft=!!st.softL,amp=(soft?FL_YUMSHOQ:FL_KUCH)*(1-0.3*dist),t=ltClock;
+  if(soft){ // yumshoq: sekin yorishadi, sekin so’nadi, faqat bitta chaqnash
+    ltP.push({t0:t,rise:0.12,len:0.4+Math.random()*0.15,a:amp});
+  }else{
+    ltP.push({t0:t,rise:0.035,len:0.1+Math.random()*0.2,a:amp});
+    // ba’zan ikkinchi chaqnash (kamida 0.38 soniyadan keyin: har soniyada 3 tadan oshmaydi)
+    if(Math.random()<0.3)ltP.push({t0:t+0.38+Math.random()*0.22,rise:0.035,len:0.1+Math.random()*0.12,a:amp*(0.6+0.3*Math.random())});
+  }
+  thunderSound(1+3*dist,dist); // chaqmoqdan 1-4 soniya keyin
+}
+// Har kadrda chaqiriladi; hozirgi chaqnash kuchini (0..1) qaytaradi
+function updateLightning(dt){
+  ltClock+=dt;
+  if(wName==="storm"&&wx.storm>0.7){
+    ltNext-=dt;
+    if(ltNext<=0){strike();ltNext=8+Math.random()*12;}
+  }else if(wx.storm<0.05)ltNext=4+Math.random()*5;
+  let f=0;
+  for(let i=ltP.length-1;i>=0;i--){
+    const p=ltP[i],u=ltClock-p.t0;
+    if(u>p.rise+p.len){ltP.splice(i,1);continue;}
+    if(u<0)continue;
+    const e=(u<p.rise?u/p.rise:Math.exp(-(u-p.rise)*3/p.len))*p.a;
+    if(e>f)f=e;
+  }
+  return f;
+}
+/* ---------- MOMAQALDIROQ TUGADI ---------- */
 function applyWeather(dt){
   if(running){
     wTimer-=dt;
-    if(wTimer<=0){const a=WAUTO[wName];if(a)setWeather(a.next);else wTimer=1e9;}
+    if(wTimer<=0){const a=WAUTO[wName];if(a)setWeather(a.alt&&a.alt.to!==wPrev&&Math.random()<a.alt.p?a.alt.to:a.next);else wTimer=1e9;}
   }
   if(wP<1){
     wP=Math.min(1,wP+dt/WTRANS);
     const u=sstep(0,1,wP),to=WX[wName];
     for(const k in wFrom)wx[k]=wFrom[k]+(to[k]-wFrom[k])*u;
   }
-  const g=wx.grey,r=wx.rain;
+  const g=wx.grey,r=wx.rain,lf=running?updateLightning(dt):0;
   // osmon va tuman: kulrangroq, to’qroq va zichroq
   {
     const c=scene.background,l=0.299*c.r+0.587*c.g+0.114*c.b;
     wTmp.setRGB(l*0.7,l*0.75,l*0.82);
     c.lerp(wTmp,g);
     if(S.tintA){wTmp.setHex(S.tint).multiplyScalar(Math.min(1,l*1.6));c.lerp(wTmp,S.tintA);}
+    if(lf>0.003){wTmp.setHex(0xd5e2ff);c.lerp(wTmp,0.5*lf);} // chaqmoq: osmon va tuman oq-ko’kimtir tusga o’tadi
     scene.fog.color.copy(c);
     scene.fog.density*=wx.fog*S.fog*(1+(S.mf||0)*Math.max(0,1-Math.abs(dayV-0.4)*3.3));
     hemi.intensity*=wx.light*S.light;
     sunL.intensity*=wx.light*(S.sun||1);moonL.intensity*=wx.light;
     if(S.warm){wTmp.setHex(0xffc878);sunL.color.lerp(wTmp,S.warm*dayV);wTmp.setHex(0xfff0d0);hemi.color.lerp(wTmp,S.warm*0.6*dayV);}
-    lampBase+=0.12*r;
+    if(lf>0.003){hemi.intensity+=0.8*lf;hemi.color.lerp(fCol,0.7*lf);hemi.groundColor.lerp(fCol2,0.5*lf);} // chaqmoq: hamma narsa qisqa yorishadi
+    lampBase+=0.12*r+0.1*wx.storm; // momaqaldiroqda fonar sal yorqinroq (o’yin juda qorong’i bo’lmasligi uchun)
     stars.material.opacity*=(1-0.85*r);
     sunM.material.opacity=moonM.material.opacity=1-0.92*r;
     if(r>0.95){sunM.visible=false;moonM.visible=false;}
   }
   // tomchilar
   if(r>0.02){
-    const cnt=Math.min(RMAX,Q.rain);
+    const cnt=Math.min(RMAX,Math.round(Q.rain*(1+0.45*wx.storm))); // momaqaldiroqda tomchilar ko’proq
     if(!rInit){
       for(let i=0;i<RMAX;i++){rd[i*3]=player.x+(Math.random()*2-1)*RR;rd[i*3+1]=Math.random()*RH;rd[i*3+2]=player.z+(Math.random()*2-1)*RR;}
       rInit=true;
     }
     const sh=0.35+0.65*dayV;
+    const vx=RVX*(1+1.3*wx.storm),vy=RVY*(1+0.25*wx.storm); // kuchli shamol: tomchilar qiyaroq va tezroq
     rmat.color.setRGB(0.72*sh,0.81*sh,0.88*sh);
-    rmat.opacity=0.5*r;
+    rmat.opacity=(0.5+0.12*wx.storm)*r;
     for(let i=0;i<cnt;i++){
-      let x=rd[i*3]+RVX*dt,y=rd[i*3+1]-RVY*dt,z=rd[i*3+2]+RVZ*dt;
+      let x=rd[i*3]+vx*dt,y=rd[i*3+1]-vy*dt,z=rd[i*3+2]+RVZ*dt;
       const dx=x-player.x,dz=z-player.z;
       if(dx>RR)x-=2*RR;else if(dx<-RR)x+=2*RR;
       if(dz>RR)z-=2*RR;else if(dz<-RR)z+=2*RR;
@@ -1100,16 +1176,17 @@ function applyWeather(dt){
       rd[i*3]=x;rd[i*3+1]=y;rd[i*3+2]=z;
       const o=i*6;
       rpos[o]=x;rpos[o+1]=y;rpos[o+2]=z;
-      rpos[o+3]=x-RVX*0.035;rpos[o+4]=y+RVY*0.035;rpos[o+5]=z-RVZ*0.035;
+      rpos[o+3]=x-vx*0.035;rpos[o+4]=y+vy*0.035;rpos[o+5]=z-RVZ*0.035;
     }
     rgeo.setDrawRange(0,cnt*2);
     rgeo.attributes.position.needsUpdate=true;
     rainL.visible=true;
   }else rainL.visible=false;
   // yomg’ir tovushi: silliq kuchayadi va susayadi
-  if(rainG&&AC)rainG.gain.setTargetAtTime(0.12*r,AC.currentTime,0.5);
+  if(rainG&&AC)rainG.gain.setTargetAtTime(0.12*r*(1+0.9*wx.storm),AC.currentTime,0.5);
+  if(windS&&AC)windS.gain.setTargetAtTime(1+1.0*wx.storm,AC.currentTime,0.6); // momaqaldiroqda shamol kuchliroq
   // ekrandagi yozuv
-  const lbl=tr(todTxt)+(S.id==="summer"?"":" · "+tr("season_"+S.id))+(r>0.5?" · "+tr("w_rain"):(wx.snow>0.5?" · "+tr("w_snow"):""));
+  const lbl=tr(todTxt)+(S.id==="summer"?"":" · "+tr("season_"+S.id))+(wx.storm>0.5?" · "+tr("w_storm"):r>0.5?" · "+tr("w_rain"):(wx.snow>0.5?" · "+tr("w_snow"):""));
   if(lbl!==wLbl){wLbl=lbl;todEl.textContent=lbl;}
 }
 let rainG=null;
@@ -1146,7 +1223,7 @@ function updateFall(dt){
   const amt=S.fq==="snow"?Math.max(wx.snow,S.snow0):S.leaf;
   const n=amt>0.03?Math.min(LMAX,Math.round(Q[S.fq||"leaf"]*amt)):0;
   if(n<1){leafP.visible=false;return;}
-  const tm=performance.now()*0.001,fv=S.fv||1;
+  const tm=performance.now()*0.001,fv=(S.fv||1)*(1+0.8*wx.storm);
   for(let i=0;i<n;i++){
     let x=ld[i*3]+(0.5+Math.sin(tm*0.9+lph[i])*0.7)*dt*fv,y=ld[i*3+1]-(0.7+0.5*Math.sin(lph[i]*3))*dt*fv,z=ld[i*3+2]+(0.3+Math.cos(tm*0.7+lph[i])*0.6)*dt*fv;
     const dx=x-player.x,dz=z-player.z;
@@ -1294,9 +1371,10 @@ applySeason(S.id,true);
 /* ---------- KOMPAS ---------- */
 // Shimol = o’yin dunyosidagi -z tomon. Disk qarash yo’nalishiga qarab aylanadi,
 // kichik belgi esa eng yaqin tosh (hammasi yig’ilsa — darvoza) tomonni ko’rsatadi.
-const cDial=document.getElementById("cdial"),cTgt=document.getElementById("ctgt");
+const cDial=document.getElementById("cdial"),cTgt=document.getElementById("ctgt"),compassEl=document.getElementById("compass");
 let cYaw=1e9,cRel=1e9,cKind="";
 function updateCompass(){
+  if(!st.compass)return; // kompas o’chiq: hisob-kitob ham qilinmaydi
   let tx,tz,kind;
   if(found<5){
     let bq=1e18,bs=null;
@@ -1379,7 +1457,7 @@ const volEl=document.getElementById("vol"),volv=document.getElementById("volv");
 const sensEl=document.getElementById("sens"),sensv=document.getElementById("sensv");
 const qbtns=Array.prototype.slice.call(menu.querySelectorAll("[data-q]")),qdesc=document.getElementById("qdesc");
 const closeB=document.getElementById("mclose"),restartB=document.getElementById("mrestart");
-const toast=document.getElementById("toast"),mcalm=document.getElementById("mcalm");
+const toast=document.getElementById("toast"),mcalm=document.getElementById("mcalm"),mcomp=document.getElementById("mcomp"),msoft=document.getElementById("msoft");
 let lastFocus=null,rsT=0,toastT=0;
 const sbox=document.getElementById("sbtns"),sbtns=[];
 Object.keys(SEA).forEach(function(id){
@@ -1412,7 +1490,7 @@ function applyLang(){
   countEl.textContent=tr("count",{n:found});
   hintTxt="";setHint(hintKey,hintVars);
   wLbl="";
-  applyMute();resetRestart();syncMenu();
+  applyMute();resetRestart();resetNewArm();syncMenu();
   if(tutOn)tutText();
   dirty=true;
 }
@@ -1420,6 +1498,10 @@ let fpsT=0,fpsF=0,fpsWarm=true,fpsDone=false;
 
 function syncMenu(){
   mcalm.textContent=tr(st.calm?"calm_on":"calm_off");mcalm.setAttribute("aria-pressed",String(!!st.calm));
+  mcomp.textContent=tr(st.compass?"calm_on":"calm_off");mcomp.setAttribute("aria-pressed",String(!!st.compass));
+  msoft.textContent=tr(st.softL?"calm_on":"calm_off");msoft.setAttribute("aria-pressed",String(!!st.softL));
+  compassEl.classList.toggle("hide",!st.compass);
+  document.documentElement.classList.toggle("nocmp",!st.compass);
   volEl.value=st.vol;volv.textContent=st.vol+"%";
   sensEl.value=st.sens;sensv.textContent=st.sens+"%";
   qbtns.forEach(function(b){b.setAttribute("aria-pressed",String(b.getAttribute("data-q")===quality));});
@@ -1486,12 +1568,14 @@ sensEl.oninput=function(){
 };
 qbtns.forEach(function(b){b.onclick=function(){setQuality(b.getAttribute("data-q"));};});
 restartB.onclick=function(){
-  if(restartB.getAttribute("data-arm")==="1"){saveNow();location.reload();return;}
+  if(restartB.getAttribute("data-arm")==="1"){if(running)clearSave();saveNow();location.reload();return;}
   restartB.setAttribute("data-arm","1");
   restartB.textContent=tr("m_sure");
   rsT=setTimeout(resetRestart,4000);
 };
 mcalm.onclick=function(){st.calm=!st.calm;if(st.calm)bat=1;saveNow();syncMenu();};
+mcomp.onclick=function(){st.compass=!st.compass;cYaw=1e9;cRel=1e9;saveNow();syncMenu();dirty=true;};
+msoft.onclick=function(){st.softL=!st.softL;saveNow();syncMenu();};
 document.getElementById("tyes").onclick=function(){setQuality("low");};
 document.getElementById("tno").onclick=hideToast;
 syncMenu();
@@ -1566,6 +1650,88 @@ function updateBat(dt){
 }
 /* ---------- FONAR QUVVATI TUGADI ---------- */
 
+/* ---------- O’YINNI SAQLASH ---------- */
+// Saqlanadi: yig’ilgan toshlar, o’yinchi joyi va qarashi, kun vaqti, ob-havo holati, fonar quvvati.
+// Til, sozlamalar, fasl va qo’llanma ko’rilgani sozlamalar bilan alohida saqlanadi (yuqorida).
+// Toshlar joyi qat’iy seed (7) bilan yaratiladi, shuning uchun joyini saqlash shart emas.
+// Kodni katta o’zgartirsangiz (masalan, toshlar joyi o’zgarsa), SAVE_VER raqamini oshiring: eski saqlash e’tiborsiz qoladi.
+const GKEY="sirli-ormon-oyin-saqlash";
+const SAVE_VER=1;
+const SAVE_ORALIQ=17000; // avtomatik saqlash oralig’i (millisekund)
+let saveOff=false,lastSave=performance.now(),savedGame=null,ngT=0;
+const rd3=function(x){return Math.round(x*1000)/1000;};
+function saveGame(){
+  if(!running||saveOff)return;
+  lastSave=performance.now();
+  try{
+    localStorage.setItem(GKEY,JSON.stringify({v:SAVE_VER,px:rd3(player.x),pz:rd3(player.z),yaw:rd3(yaw),pitch:rd3(pitch),tc:rd3(tcyc%1),got:stones.map(function(s){return !!s.got;}),wx:wName,bat:rd3(bat)}));
+  }catch(e){}
+}
+function wipeSave(){try{localStorage.removeItem(GKEY);}catch(e){}}
+function clearSave(){saveOff=true;wipeSave();} // o’yin tugadi yoki qayta boshlandi: saqlash o’chadi va qayta yozilmaydi
+function readSave(){
+  try{
+    const raw=localStorage.getItem(GKEY);
+    if(!raw)return null;
+    const o=JSON.parse(raw);
+    if(!o||typeof o!=="object"||o.v!==SAVE_VER)return null; // boshqa versiya: e’tiborsiz
+    if(!Array.isArray(o.got)||o.got.length!==stones.length)return null;
+    for(let i=0;i<o.got.length;i++)if(typeof o.got[i]!=="boolean")return null;
+    const nums=[o.px,o.pz,o.yaw,o.pitch,o.tc,o.bat];
+    for(let i=0;i<nums.length;i++)if(typeof nums[i]!=="number"||!isFinite(nums[i]))return null;
+    return o;
+  }catch(e){return null;}
+}
+function restoreWeather(name){
+  if(!WX[name]||!WAUTO[name])name="clear";
+  wName=name;wP=1;
+  for(const k in wx){wx[k]=WX[name][k];wFrom[k]=wx[k];}
+  const a=WAUTO[name];wTimer=a.dur[0]+Math.random()*(a.dur[1]-a.dur[0]);
+}
+function applySaved(o){
+  try{
+    player.x=o.px;player.z=o.pz;
+    const pr=Math.hypot(player.x,player.z);
+    if(pr>72){player.x*=72/pr;player.z*=72/pr;}
+    yaw=o.yaw;pitch=Math.max(-1.4,Math.min(1.4,o.pitch));
+    tcyc=Math.min(1,Math.max(0,o.tc));
+    bat=Math.min(1,Math.max(0,o.bat));batS=bat;
+    found=0;
+    stones.forEach(function(s,i){if(o.got[i]){s.got=true;s.g.visible=false;found++;}});
+    countEl.textContent=tr("count",{n:found});
+    if(found>=stones.length)gate.visible=true;
+    restoreWeather(o.wx);
+  }catch(e){}
+}
+const goB=document.getElementById("go"),contB=document.getElementById("cont"),newgB=document.getElementById("newg");
+function resetNewArm(){
+  clearTimeout(ngT);
+  newgB.setAttribute("data-arm","");
+  newgB.textContent=tr("newg");
+}
+savedGame=readSave();
+if(savedGame){goB.hidden=true;contB.hidden=false;newgB.hidden=false;} // saqlash bor: "Boshlash" o’rniga ikkita tugma
+contB.onclick=function(){
+  if(paused)return;
+  if(savedGame)applySaved(savedGame);
+  goB.onclick();
+};
+newgB.onclick=function(){
+  if(paused)return;
+  if(newgB.getAttribute("data-arm")!=="1"){ // avval qisqa tasdiq
+    newgB.setAttribute("data-arm","1");
+    newgB.textContent=tr("newg_sure");
+    clearTimeout(ngT);ngT=setTimeout(resetNewArm,4000);
+    return;
+  }
+  clearTimeout(ngT);
+  wipeSave();savedGame=null;
+  goB.onclick();
+};
+document.addEventListener("visibilitychange",function(){if(document.hidden)saveGame();});
+addEventListener("pagehide",saveGame);
+/* ---------- SAQLASH TUGADI ---------- */
+
 let last=performance.now();
 function tick(now){
   requestAnimationFrame(tick);
@@ -1624,13 +1790,14 @@ function tick(now){
         countEl.textContent=tr("count",{n:found});
         stoneSound(found);
         if(found===5){gate.visible=true;gateSound(0.7);}
+        saveGame(); // tosh topildi: darhol saqlaymiz
       }
     }
     if(found<5){setHint("h_stone",{d:Math.round(nearest)});}
     else{
       const gd=Math.hypot(player.x-gate.position.x,player.z-gate.position.z);
       setHint("h_gate",{d:Math.round(gd)});
-      if(gd<2.2){running=false;winSound();document.getElementById("win").classList.remove("hide");}
+      if(gd<2.2){running=false;clearSave();winSound();document.getElementById("win").classList.remove("hide");}
     }
   }
   for(const s2 of stones){s2.s.rotation.y+=dt;s2.s.position.y=1.2+Math.sin(now*0.003)*0.15;}
@@ -1646,6 +1813,7 @@ function tick(now){
   updateAnimals(dt,now);
   updateCompass();
   updateBat(dt);
+  if(running&&now-lastSave>SAVE_ORALIQ)saveGame(); // avtomatik saqlash
   lamp.intensity=lampBase*(FONAR_MIN+(1-FONAR_MIN)*batS)*(1+Math.sin(now*0.01)*0.045+(1-batS)*Math.sin(now*0.023)*0.05);
   lamp.distance=16*(FONAR_MASOFA+(1-FONAR_MASOFA)*batS);
   scene.fog.density*=1+FONAR_TUMAN*(1-batS)*(0.4+0.6*(1-dayV));

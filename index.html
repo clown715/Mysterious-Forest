@@ -14,16 +14,17 @@
 <title>Sirli o’rmon</title>
 <style>
 :root{--bg:#0b1512;--ink:#e6efe8;--glow:#7ff0d0;--moss:#3d6b4f;--ember:#ffc46b;color-scheme:dark}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Georgia,"Times New Roman",serif;overflow:hidden;touch-action:none}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Georgia,"Times New Roman","Noto Serif","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR","Noto Sans CJK KR","Nanum Gothic",serif;overflow:hidden;touch-action:none}
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 #hud{position:fixed;left:0;right:0;top:env(safe-area-inset-top,0px);padding:12px calc(16px + env(safe-area-inset-right,0px)) 12px calc(16px + env(safe-area-inset-left,0px));display:flex;justify-content:space-between;align-items:flex-start;gap:12px;pointer-events:none;font-size:1.05rem;text-shadow:0 1px 6px #000;z-index:2}
 #hl{display:flex;flex-direction:column;gap:2px}
-.ov{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:rgba(6,12,10,.88);text-align:center;padding:24px;z-index:5}
+.ov{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;gap:16px;background:rgba(6,12,10,.88);text-align:center;padding:24px;z-index:5}
+.ov>*:first-child{margin-top:auto}.ov>*:last-child{margin-bottom:auto}
 .ov.hide{display:none}
 h1{font-size:clamp(2rem,7vw,3.4rem);margin:0;font-weight:400;letter-spacing:.02em}
 .ov p{max-width:36ch;margin:0;line-height:1.55;opacity:.88}
 .ov p.small{font-size:.9rem;opacity:.6}
-button{font:inherit;font-size:1.1rem;padding:12px 30px;border:1px solid var(--glow);background:transparent;color:var(--glow);border-radius:999px;cursor:pointer}
+button{font:inherit;line-height:1.25;white-space:normal;overflow-wrap:anywhere;font-size:1.1rem;padding:12px 30px;border:1px solid var(--glow);background:transparent;color:var(--glow);border-radius:999px;cursor:pointer}
 button:hover{background:rgba(127,240,208,.12)}
 button:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
 #snd{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:3;font-size:1rem;min-height:48px;min-width:48px;padding:10px 20px;background:rgba(6,12,10,.6);touch-action:manipulation}
@@ -44,7 +45,7 @@ button.warn{border-color:#ff9a7a;color:#ffb49c}
 #cbody{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 50% 40%,rgba(20,38,32,.75),rgba(6,12,10,.72));border:1px solid rgba(127,240,208,.45);box-shadow:0 0 14px rgba(127,240,208,.22),inset 0 0 10px rgba(0,0,0,.6)}
 #cdial,#ctgt{position:absolute;inset:0;will-change:transform}
 #cdial svg{width:100%;height:100%;display:block}
-#cdial text{font-family:Georgia,"Times New Roman",serif;font-size:11px;fill:rgba(230,239,232,.8);text-anchor:middle;dominant-baseline:central}
+#cdial text{font-family:Georgia,"Times New Roman","Noto Serif","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR","Noto Sans CJK KR","Nanum Gothic",serif;font-size:11px;fill:rgba(230,239,232,.8);text-anchor:middle;dominant-baseline:central}
 #cdial text.n{fill:var(--glow);font-weight:bold}
 #ctgt i{position:absolute;left:50%;top:-5px;width:9px;height:9px;margin-left:-4.5px;transform:rotate(45deg);border-radius:2px;background:var(--glow);box-shadow:0 0 8px var(--glow)}
 #ctgt.gate i{background:var(--ember);box-shadow:0 0 8px var(--ember)}
@@ -77,12 +78,23 @@ button.warn{border-color:#ff9a7a;color:#ffb49c}
 #toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 112px);width:min(92vw,360px);box-sizing:border-box;z-index:4;background:rgba(6,12,10,.88);border:1px solid rgba(127,240,208,.4);border-radius:14px;padding:12px 14px;text-align:center;font-size:.95rem;line-height:1.4}
 #toast.hide{display:none}
 #toast button{font-size:.95rem;padding:8px 16px;min-height:44px;margin:8px 4px 0;touch-action:manipulation}
+/* Tillar: tugmalar va uzun matnlar ekranga sig’adi */
+.langs{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:4px}
+.langs button{font-size:.95rem;padding:8px 14px;min-height:44px;border-color:rgba(230,239,232,.35);color:var(--ink);touch-action:manipulation}
+.langs button[aria-pressed="true"]{background:rgba(127,240,208,.18);border-color:var(--glow)}
+.panel .langs{justify-content:flex-start}
+.seg button{min-width:0;padding-left:6px;padding-right:6px}
+#hl{max-width:calc(50vw - 56px)}
+#set{max-width:calc(50vw - 56px)}
+#set span{text-align:left}
+#snd{max-width:50vw}
+.row>span,.row>label{min-width:0;overflow-wrap:anywhere}
 </style>
 </head>
 <body>
 <div id="hud">
   <div id="hl"><span id="count">Toshlar: 0/5</span><span id="tod">Tong</span></div>
-  <button id="set" type="button" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Sozlamalar</span></button>
+  <button id="set" type="button" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span data-i="settings">Sozlamalar</span></button>
 </div>
 <div id="compass" aria-hidden="true">
   <div id="cfwd"></div>
@@ -98,61 +110,153 @@ button.warn{border-color:#ff9a7a;color:#ffb49c}
       <line x1="32" y1="3" x2="32" y2="6" transform="rotate(270 32 32)"/>
       <line x1="32" y1="3" x2="32" y2="6" transform="rotate(315 32 32)"/>
     </g>
-    <text class="n" x="32" y="14">N</text>
-    <text x="50" y="32">E</text>
-    <text x="32" y="50">S</text>
-    <text x="14" y="32">W</text>
+    <text class="n" x="32" y="14" data-i="dir_n">N</text>
+    <text x="50" y="32" data-i="dir_e">E</text>
+    <text x="32" y="50" data-i="dir_s">S</text>
+    <text x="14" y="32" data-i="dir_w">W</text>
   </svg></div>
   <div id="ctgt"><i></i></div>
 </div>
 <div id="hintbar"><span id="hint"></span></div>
 <div id="stick"><div id="knob"></div></div>
-<button id="snd" aria-label="Ovozni yoqish yoki o’chirish" aria-pressed="true">Ovoz: yoqilgan</button>
+<button id="snd" data-ia="snd_aria" aria-label="Ovozni yoqish yoki o’chirish" aria-pressed="true">Ovoz: yoqilgan</button>
 <div class="ov" id="start">
-  <h1>Sirli o’rmon</h1>
-  <p>Tuman bosgan o’rmonda 5 ta yorug’lik toshini toping. Hammasi yig’ilganda chiqish darvozasi ochiladi.</p>
-  <button id="go">Boshlash</button>
-  <button id="set2" class="ghost" type="button">Sozlamalar</button>
-  <p class="small">Kompyuter: WASD bilan yuring, R — yomg’irni sinash, sichqonchani bosib surib qarang, M — ovozni o’chirish, Esc — sozlamalar. Telefon: chapda harakat, o’ngda qarash.</p>
+  <h1 data-i="title">Sirli o’rmon</h1>
+  <p data-i="intro">Tuman bosgan o’rmonda 5 ta yorug’lik toshini toping. Hammasi yig’ilganda chiqish darvozasi ochiladi.</p>
+  <button id="go" data-i="start">Boshlash</button>
+  <button id="set2" class="ghost" type="button" data-i="settings">Sozlamalar</button>
+  <div class="langs" id="langs1" role="group" aria-label="Til / Language"></div>
+  <p class="small" data-i="controls">Kompyuter: WASD bilan yuring, R — yomg’irni sinash, sichqonchani bosib surib qarang, M — ovozni o’chirish, Esc — sozlamalar. Telefon: chapda harakat, o’ngda qarash.</p>
 </div>
 <div class="ov hide" id="win">
-  <h1>O’rmondan chiqdingiz</h1>
-  <p>Barcha toshlarni topib, yo’lni ochdingiz.</p>
-  <button id="again">Qayta o’ynash</button>
+  <h1 data-i="win_title">O’rmondan chiqdingiz</h1>
+  <p data-i="win_text">Barcha toshlarni topib, yo’lni ochdingiz.</p>
+  <button id="again" data-i="again">Qayta o’ynash</button>
 </div>
 <div class="ov hide" id="menu" role="dialog" aria-modal="true" aria-labelledby="mtitle">
   <div class="panel">
-    <h2 id="mtitle">Sozlamalar</h2>
-    <div class="row"><label for="vol">Umumiy tovush</label><output id="volv">60%</output></div>
+    <h2 id="mtitle" data-i="m_title">Sozlamalar</h2>
+    <div class="row"><label for="vol" data-i="m_vol">Umumiy tovush</label><output id="volv">60%</output></div>
     <input type="range" id="vol" min="0" max="100" step="1" value="60">
-    <div class="row"><span>Tovush</span><button id="mmute" type="button" aria-pressed="true">Ovoz: yoqilgan</button></div>
-    <div class="row"><label for="sens">Qarash sezgirligi</label><output id="sensv">100%</output></div>
+    <div class="row"><span data-i="m_sound">Tovush</span><button id="mmute" type="button" aria-pressed="true">Ovoz: yoqilgan</button></div>
+    <div class="row"><label for="sens" data-i="m_sens">Qarash sezgirligi</label><output id="sensv">100%</output></div>
     <input type="range" id="sens" min="40" max="200" step="5" value="100">
-    <div class="row"><span id="qlbl">Grafika sifati</span></div>
+    <div class="row"><span id="qlbl" data-i="m_gfx">Grafika sifati</span></div>
     <div class="seg" role="group" aria-labelledby="qlbl">
-      <button type="button" data-q="low" aria-pressed="false">Past</button>
-      <button type="button" data-q="mid" aria-pressed="false">O’rta</button>
-      <button type="button" data-q="high" aria-pressed="false">Yuqori</button>
+      <button type="button" data-q="low" data-i="q_low_b" aria-pressed="false">Past</button>
+      <button type="button" data-q="mid" data-i="q_mid_b" aria-pressed="false">O’rta</button>
+      <button type="button" data-q="high" data-i="q_high_b" aria-pressed="false">Yuqori</button>
     </div>
     <p class="sub" id="qdesc"></p>
+    <div class="row"><span id="slbl" data-i="m_season">Fasl</span></div>
+    <div class="seg" id="sbtns" role="group" aria-labelledby="slbl"></div>
+    <div class="row"><span id="llbl" data-i="m_lang">Til</span></div>
+    <div class="langs" id="langs2" role="group" aria-labelledby="llbl"></div>
     <div class="acts">
-      <button type="button" id="mclose">Davom etish</button>
+      <button type="button" id="mclose" data-i="m_close">Davom etish</button>
       <button type="button" id="mrestart" class="ghost warn">O’yinni qayta boshlash</button>
     </div>
   </div>
 </div>
 <div id="toast" class="hide" role="status" aria-live="polite">
-  <div>O’yin sekin ishlayotganga o’xshaydi. Grafikani pastga tushiraymi?</div>
-  <button type="button" id="tyes">Ha, tushir</button><button type="button" id="tno" class="ghost">Yo’q</button>
+  <div data-i="toast">O’yin sekin ishlayotganga o’xshaydi. Grafikani pastga tushiraymi?</div>
+  <button type="button" id="tyes" data-i="toast_yes">Ha, tushir</button><button type="button" id="tno" class="ghost" data-i="toast_no">Yo’q</button>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
 <script>
 (function(){
 const T=THREE;
 
+/* ---------- TILLAR: o’yindagi HAMMA matn shu yerda ----------
+   Yangi til qo’shish: TILLAR ichiga yangi blok yozing (til kodi, masalan de:{name:"Deutsch",t:{...}}), ichidagi hamma kalitni tarjima qiling.
+   Kalit yetishmasa, o’zbekcha matn ko’rinadi. {n} va {d} — o’yin o’zi qo’yadigan raqamlar, ularni o’zgartirmang.
+   Matnni o’zgartirish: kerakli tildagi qatorni toping va tahrirlang. Tugma o’zi paydo bo’ladi. */
+const TILLAR={
+uz:{name:"O’zbekcha",t:{
+ title:"Sirli o’rmon",intro:"Tuman bosgan o’rmonda 5 ta yorug’lik toshini toping. Hammasi yig’ilganda chiqish darvozasi ochiladi.",
+ start:"Boshlash",settings:"Sozlamalar",controls:"Kompyuter: WASD bilan yuring, R — yomg’irni sinash, sichqonchani bosib surib qarang, M — ovozni o’chirish, Esc — sozlamalar. Telefon: chapda harakat, o’ngda qarash.",
+ win_title:"O’rmondan chiqdingiz",win_text:"Barcha toshlarni topib, yo’lni ochdingiz.",again:"Qayta o’ynash",
+ m_title:"Sozlamalar",m_vol:"Umumiy tovush",m_sound:"Tovush",m_sens:"Qarash sezgirligi",m_gfx:"Grafika sifati",q_low_b:"Past",q_mid_b:"O’rta",q_high_b:"Yuqori",
+ m_season:"Fasl",m_lang:"Til",m_close:"Davom etish",m_restart:"O’yinni qayta boshlash",m_sure:"Ishonchingiz komilmi? Yana bosing",
+ toast:"O’yin sekin ishlayotganga o’xshaydi. Grafikani pastga tushiraymi?",toast_yes:"Ha, tushir",toast_no:"Yo’q",
+ snd_aria:"Ovozni yoqish yoki o’chirish",snd_on:"Ovoz: yoqilgan",snd_off:"Ovoz: o’chiq",
+ count:"Toshlar: {n}/5",h_stone:"Eng yaqin tosh: {d} m",h_gate:"Darvoza ochildi: {d} m",
+ tod0:"Tong",tod1:"Kunduz",tod2:"Kech",tod3:"Tun",w_rain:"Yomg’ir",w_snow:"Qor",
+ season_summer:"Yoz",season_autumn:"Kuz",season_winter:"Qish",season_spring:"Bahor",
+ qd_low:"Kamroq daraxt va hayvon, tuman yaqinroq. Sekin telefonlar uchun.",qd_mid:"Muvozanatli sifat. Ko’p telefonlar uchun mos.",qd_high:"Eng chiroyli: ko’p daraxt va hayvon, uzoqroq ko’rinish.",
+ dir_n:"N",dir_e:"E",dir_s:"S",dir_w:"W"}},
+ru:{name:"Русский",t:{
+ title:"Таинственный лес",intro:"В окутанном туманом лесу найдите 5 светящихся камней. Когда все камни будут собраны, откроются ворота выхода.",
+ start:"Начать",settings:"Настройки",controls:"Компьютер: ходите клавишами WASD, R — проверить дождь, осматривайтесь мышью, M — выключить звук, Esc — настройки. Телефон: слева движение, справа обзор.",
+ win_title:"Вы вышли из леса",win_text:"Вы нашли все камни и открыли путь.",again:"Играть снова",
+ m_title:"Настройки",m_vol:"Общая громкость",m_sound:"Звук",m_sens:"Чувствительность обзора",m_gfx:"Качество графики",q_low_b:"Низкое",q_mid_b:"Среднее",q_high_b:"Высокое",
+ m_season:"Время года",m_lang:"Язык",m_close:"Продолжить",m_restart:"Начать игру заново",m_sure:"Вы уверены? Нажмите ещё раз",
+ toast:"Похоже, игра работает медленно. Снизить качество графики?",toast_yes:"Да, снизить",toast_no:"Нет",
+ snd_aria:"Включить или выключить звук",snd_on:"Звук: включён",snd_off:"Звук: выключен",
+ count:"Камни: {n}/5",h_stone:"Ближайший камень: {d} м",h_gate:"Ворота открыты: {d} м",
+ tod0:"Рассвет",tod1:"День",tod2:"Вечер",tod3:"Ночь",w_rain:"Дождь",w_snow:"Снег",
+ season_summer:"Лето",season_autumn:"Осень",season_winter:"Зима",season_spring:"Весна",
+ qd_low:"Меньше деревьев и животных, туман ближе. Для медленных телефонов.",qd_mid:"Сбалансированное качество. Подходит для большинства телефонов.",qd_high:"Самое красивое: больше деревьев и животных, дальше обзор.",
+ dir_n:"С",dir_e:"В",dir_s:"Ю",dir_w:"З"}},
+en:{name:"English",t:{
+ title:"The Mysterious Forest",intro:"Find 5 glowing stones in the fog-shrouded forest. When all of them are gathered, the exit gate will open.",
+ start:"Start",settings:"Settings",controls:"Computer: walk with WASD, R — test the rain, drag the mouse to look around, M — mute, Esc — settings. Phone: move on the left, look on the right.",
+ win_title:"You escaped the forest",win_text:"You found every stone and opened the way.",again:"Play again",
+ m_title:"Settings",m_vol:"Master volume",m_sound:"Sound",m_sens:"Look sensitivity",m_gfx:"Graphics quality",q_low_b:"Low",q_mid_b:"Medium",q_high_b:"High",
+ m_season:"Season",m_lang:"Language",m_close:"Resume",m_restart:"Restart the game",m_sure:"Are you sure? Tap again",
+ toast:"The game seems to be running slowly. Lower the graphics?",toast_yes:"Yes, lower it",toast_no:"No",
+ snd_aria:"Turn sound on or off",snd_on:"Sound: on",snd_off:"Sound: off",
+ count:"Stones: {n}/5",h_stone:"Nearest stone: {d} m",h_gate:"The gate is open: {d} m",
+ tod0:"Dawn",tod1:"Day",tod2:"Dusk",tod3:"Night",w_rain:"Rain",w_snow:"Snow",
+ season_summer:"Summer",season_autumn:"Autumn",season_winter:"Winter",season_spring:"Spring",
+ qd_low:"Fewer trees and animals, closer fog. For slower phones.",qd_mid:"Balanced quality. Suits most phones.",qd_high:"The prettiest: more trees and animals, a longer view.",
+ dir_n:"N",dir_e:"E",dir_s:"S",dir_w:"W"}},
+tr:{name:"Türkçe",t:{
+ title:"Gizemli Orman",intro:"Sisle kaplı ormanda 5 ışık taşı bulun. Hepsi toplandığında çıkış kapısı açılır.",
+ start:"Başla",settings:"Ayarlar",controls:"Bilgisayar: WASD ile yürüyün, R — yağmuru deneyin, fareyi sürükleyerek etrafa bakın, M — sesi kapatın, Esc — ayarlar. Telefon: solda hareket, sağda bakış.",
+ win_title:"Ormandan çıktınız",win_text:"Tüm taşları bulup yolu açtınız.",again:"Tekrar oyna",
+ m_title:"Ayarlar",m_vol:"Genel ses",m_sound:"Ses",m_sens:"Bakış hassasiyeti",m_gfx:"Grafik kalitesi",q_low_b:"Düşük",q_mid_b:"Orta",q_high_b:"Yüksek",
+ m_season:"Mevsim",m_lang:"Dil",m_close:"Devam et",m_restart:"Oyunu yeniden başlat",m_sure:"Emin misiniz? Tekrar dokunun",
+ toast:"Oyun yavaş çalışıyor gibi görünüyor. Grafikleri düşüreyim mi?",toast_yes:"Evet, düşür",toast_no:"Hayır",
+ snd_aria:"Sesi aç veya kapat",snd_on:"Ses: açık",snd_off:"Ses: kapalı",
+ count:"Taşlar: {n}/5",h_stone:"En yakın taş: {d} m",h_gate:"Kapı açıldı: {d} m",
+ tod0:"Şafak",tod1:"Gündüz",tod2:"Akşam",tod3:"Gece",w_rain:"Yağmur",w_snow:"Kar",
+ season_summer:"Yaz",season_autumn:"Sonbahar",season_winter:"Kış",season_spring:"İlkbahar",
+ qd_low:"Daha az ağaç ve hayvan, sis daha yakın. Yavaş telefonlar için.",qd_mid:"Dengeli kalite. Çoğu telefona uygun.",qd_high:"En güzel görünüm: daha çok ağaç ve hayvan, daha uzak görüş.",
+ dir_n:"K",dir_e:"D",dir_s:"G",dir_w:"B"}},
+ko:{name:"한국어",t:{
+ title:"신비의 숲",intro:"안개 낀 숲에서 빛나는 돌 5개를 찾으세요. 모두 모으면 출구 문이 열립니다.",
+ start:"시작",settings:"설정",controls:"컴퓨터: WASD로 이동, R — 비 테스트, 마우스를 끌어 둘러보기, M — 소리 끄기, Esc — 설정. 휴대폰: 왼쪽은 이동, 오른쪽은 시점 조작.",
+ win_title:"숲을 빠져나왔습니다",win_text:"모든 돌을 찾아 길을 열었습니다.",again:"다시 플레이",
+ m_title:"설정",m_vol:"전체 볼륨",m_sound:"소리",m_sens:"시점 감도",m_gfx:"그래픽 품질",q_low_b:"낮음",q_mid_b:"보통",q_high_b:"높음",
+ m_season:"계절",m_lang:"언어",m_close:"계속하기",m_restart:"게임 다시 시작",m_sure:"정말입니까? 한 번 더 누르세요",
+ toast:"게임이 느리게 실행되는 것 같습니다. 그래픽 품질을 낮출까요?",toast_yes:"네, 낮출게요",toast_no:"아니요",
+ snd_aria:"소리 켜기 또는 끄기",snd_on:"소리: 켜짐",snd_off:"소리: 꺼짐",
+ count:"돌: {n}/5",h_stone:"가장 가까운 돌: {d}m",h_gate:"문이 열렸습니다: {d}m",
+ tod0:"새벽",tod1:"낮",tod2:"저녁",tod3:"밤",w_rain:"비",w_snow:"눈",
+ season_summer:"여름",season_autumn:"가을",season_winter:"겨울",season_spring:"봄",
+ qd_low:"나무와 동물이 적고 안개가 가깝습니다. 느린 휴대폰용입니다.",qd_mid:"균형 잡힌 품질입니다. 대부분의 휴대폰에 적합합니다.",qd_high:"가장 아름다운 설정: 나무와 동물이 많고 시야가 더 멉니다.",
+ dir_n:"북",dir_e:"동",dir_s:"남",dir_w:"서"}}
+};
+let LANG="uz";
+function tr(k,v){
+  const a=TILLAR[LANG]&&TILLAR[LANG].t[k],b=TILLAR.uz.t[k];
+  let s=a!==undefined?a:(b!==undefined?b:k);
+  if(v)for(const x in v)s=s.split("{"+x+"}").join(v[x]);
+  return s;
+}
+function autoLang(){ // telefon tiliga qarab; aniqlanmasa o’zbek
+  try{
+    const l=navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language||""];
+    for(let i=0;i<l.length;i++){const c=String(l[i]).toLowerCase().slice(0,2);if(TILLAR[c])return c;}
+  }catch(e){}
+  return "uz";
+}
+/* ---------- TILLAR TUGADI ---------- */
+
 /* ---------- SOZLAMALAR (brauzerda saqlanadi) ---------- */
 const SKEY="sirli-ormon-sozlamalar-v1";
-const st={vol:60,mute:false,sens:100,q:"",sug:false};
+const st={vol:60,mute:false,sens:100,q:"",sug:false,season:"summer",lang:""};
 try{
   const raw=localStorage.getItem(SKEY);
   if(raw){
@@ -162,23 +266,58 @@ try{
       if(typeof o.mute==="boolean")st.mute=o.mute;
       if(typeof o.sens==="number"&&isFinite(o.sens))st.sens=Math.min(200,Math.max(40,Math.round(o.sens)));
       if(o.q==="low"||o.q==="mid"||o.q==="high")st.q=o.q;
+      if(typeof o.season==="string")st.season=o.season;
+      if(typeof o.lang==="string")st.lang=o.lang;
       if(typeof o.sug==="boolean")st.sug=o.sug;
     }
   }
 }catch(e){}
 let saveTm=0;
 function saveNow(){try{localStorage.setItem(SKEY,JSON.stringify(st));}catch(e){}}
+LANG=TILLAR[st.lang]?st.lang:autoLang();
 function saveSoon(){clearTimeout(saveTm);saveTm=setTimeout(saveNow,300);}
 
 // Grafika sifati: past / o’rta / yuqori
 const LOW=!!(window.matchMedia&&matchMedia("(pointer:coarse)").matches); // telefon = o’rta sifatdan boshlanadi
 const QUAL={
-  low:{rain:120,pr:1,tree:0.45,deer:2,rab:3,fox:1,bird:3,fly:6,stars:150,fog:1.6,cull:30},
-  mid:{rain:220,pr:1.25,tree:0.8,deer:3,rab:4,fox:1,bird:4,fly:12,stars:300,fog:1.15,cull:38},
-  high:{rain:380,pr:1.5,tree:1,deer:4,rab:6,fox:2,bird:6,fly:20,stars:450,fog:1,cull:55}
+  low:{spot:16,flw:70,gr:110,bf:4,bug:8,snow:100,leaf:25,rain:120,pr:1,tree:0.45,deer:2,rab:3,fox:1,bird:3,fly:6,stars:150,fog:1.6,cull:30},
+  mid:{spot:28,flw:160,gr:200,bf:7,bug:14,snow:180,leaf:45,rain:220,pr:1.25,tree:0.8,deer:3,rab:4,fox:1,bird:4,fly:12,stars:300,fog:1.15,cull:38},
+  high:{spot:40,flw:260,gr:320,bf:10,bug:22,snow:300,leaf:70,rain:380,pr:1.5,tree:1,deer:4,rab:6,fox:2,bird:6,fly:20,stars:450,fog:1,cull:55}
 };
 let quality=st.q||(LOW?"mid":"high"),Q=QUAL[quality],CULL=Q.cull,fogMul=Q.fog,flN=Q.fly;
 const QN={d:Q.deer,r:Q.rab,f:Q.fox};
+/* ---------- FASLLAR (har faslning hamma sozlamasi shu yerda) ----------
+   Yangi fasl qo’shish uchun SEA ichiga yangi blok yozing (masalan spring:{...}); tugma o’zi paydo bo’ladi.
+   ground = yer rangi, pal = daraxt barglari ranglari, tint/tintA = osmon va tuman tusi va kuchi,
+   fog = tuman zichligi ko’paytmasi, light = yorug’lik ko’paytmasi, an = hayvonlar soni ko’paytmasi,
+   cr/bd = kriket/qush faolligi, leaf = to’kilayotgan barglar (0 = yo’q), leafCols = barg zarrachalari ranglari,
+   rust/cold = barg shitirlashi va sovuq shamol tovushi balandligi, sf = qadam tovushi qattiqligi,
+   fq/snow0/fv/fs/fo = qor (zarracha turi, doimiy qor kuchi, tushish tezligi, o’lchami, shaffofligi), pre = R tugmasi yoqadigan ob-havo,
+   flw = gullar va o’t (1 = bor), mf = tong tumani qo’shimchasi, rn/bn = quyon va qush soni ko’paytmasi, bt = qush sayrash oralig’i, round = dumaloq zarrachalar,
+   sun/warm = quyosh kuchi va iliqligi, dl = kunduz uzunligi (+ uzunroq), fx/fa = tulki soni va faolligi, ff = yorug’lik qurtlari ko’paytmasi,
+   bg = mayda hasharotlar ko’paytmasi, spots = yer ustidagi nur dog’lari,
+   stone/ss = yorug’lik toshi rangi va kattaligi, ring = darvoza halqasi rangi, wa = ob-havo navbati. */
+const SEA={
+  summer:{id:"summer",name:"Yoz",ground:0x1c4a2a,pal:[0x1f5a33,0x246b3a,0x1a4f2e,0x2a7a40,0x1d5f35],tint:0xf6e6c0,tintA:0.08,fog:0.85,light:1.1,sun:1.25,warm:0.6,dl:0.3,
+    an:1.1,fx:2,fa:0.55,cr:1.8,bd:1,ff:1.7,bg:1.2,spots:1,
+    leaf:0,leafCols:[],rust:0,cold:0,sf:1,stone:0x7ff0d0,ss:1.2,ring:0xffc46b,pre:"rain",
+    wa:{clear:{next:"rain",dur:[120,240]},rain:{next:"clear",dur:[60,120]}}},
+  autumn:{id:"autumn",name:"Kuz",ground:0x4a3a1e,pal:[0xe8b423,0xe0701a,0xc0301a,0xd99a1c,0x9a5a1a,0xf0d040],
+    tint:0xaab8c4,tintA:0.2,fog:1.15,light:0.92,an:1.25,cr:0.5,bd:0.7,
+    leaf:1,leafCols:[0xf0b020,0xe0701a,0xd03a1a,0xc98a1b,0xf2d24a],rust:0.06,cold:0.03,sf:1.6,stone:0x35ffe6,ss:1.4,ring:0xfff6d8,pre:"rain",
+    wa:{clear:{next:"rain",dur:[50,110]},rain:{next:"clear",dur:[70,130]}}},
+  winter:{id:"winter",name:"Qish",ground:0xdfe8ee,pal:[0xeef3f6,0xdfe8ee,0xf6f9fb],tint:0xd3dae0,tintA:0.5,fog:1.1,light:1,
+    an:0.5,cr:0,bd:0.1,fl:0,leaf:0,fq:"snow",snow0:0.4,fv:1.1,fs:4,fo:0.9,leafCols:[0xffffff],rust:0,cold:0.08,sf:0.35,sl:0.6,
+    stone:0x00a896,ss:1.5,ring:0xff7a00,pre:"snow",
+    wa:{clear:{next:"snow",dur:[80,160]},snow:{next:"clear",dur:[60,120]}}},
+  spring:{id:"spring",name:"Bahor",ground:0x3d7a3a,pal:[0x8fd860,0x9ee06a,0x78c850,0xa8e070,0x8fd860,0xf4b6d2,0xfaf0f5],
+    tint:0xe9ddf0,tintA:0.25,fog:1.1,mf:0.35,light:1,an:1.1,rn:1.5,bn:1.5,cr:0.7,bd:2.2,bt:0.4,
+    leaf:0.6,leafCols:[0xffc4dc,0xffffff,0xffe9a0,0xffb0cf],fv:0.5,fs:5,fo:0.9,round:true,flw:1,
+    rust:0.015,cold:0.035,sf:1,stone:0x00d5ff,ss:1.4,ring:0xff8a1f,pre:"rain",
+    wa:{clear:{next:"rain",dur:[55,110]},rain:{next:"clear",dur:[60,110]}}}
+};
+let S=SEA[SEA[st.season]?st.season:"summer"];
+
 let paused=false,dirty=false;
 /* ---------- SOZLAMALAR TUGADI ---------- */
 
@@ -270,7 +409,8 @@ const keys={};
 let jx=0,jy=0;
 const countEl=document.getElementById("count"),hintEl=document.getElementById("hint");
 let hintTxt="";
-function setHint(s){if(s!==hintTxt){hintTxt=s;hintEl.textContent=s;}}
+let hintKey="",hintVars=null;
+function setHint(k,v){hintKey=k;hintVars=v;const s=k?tr(k,v):"";if(s!==hintTxt){hintTxt=s;hintEl.textContent=s;}}
 
 /* ---------- KECHA VA KUNDUZ ---------- */
 const CYCLE=180;
@@ -331,8 +471,8 @@ function applyTime(t){
     bcn[k].m.opacity=0.5+0.15*nF;
   }
   lampBase=0.15+1.65*nF;
-  const nm=t<0.15||t>=0.9?"Tong":t<0.42?"Kunduz":t<0.6?"Kech":"Tun";
-  if(nm!==todTxt){todTxt=nm;todEl.textContent=nm;}
+  const nm=t<0.15||t>=0.9?"tod0":t<0.42?"tod1":t<0.6?"tod2":"tod3";
+  if(nm!==todTxt){todTxt=nm;todEl.textContent=tr(nm);}
 }
 /* ---------- KECHA VA KUNDUZ TUGADI ---------- */
 
@@ -359,7 +499,7 @@ function initAudio(){
     const dl=AC.createDelay(1),fb=AC.createGain(),lp=AC.createBiquadFilter();
     dl.delayTime.value=0.28;fb.gain.value=0.35;lp.type="lowpass";lp.frequency.value=2200;
     fxIn.connect(dl);dl.connect(lp);lp.connect(fb);fb.connect(dl);lp.connect(master);
-    startWind();startCrickets();startRain();
+    startWind();startCrickets();startRain();startSeasonSnd();
     if(AC.state==="suspended")AC.resume();
   }catch(e){AC=null;}
 }
@@ -402,7 +542,7 @@ function tone(freq,t,dur,vol,type,toFx){
 function stepSound(){
   if(!AC)return;
   const t=AC.currentTime;
-  [[500+Math.random()*400,"lowpass",0.3,0.14],[2500,"highpass",0.06,0.09]].forEach(function(c){
+  [[500+Math.random()*400,"lowpass",0.3*(S.sl||1),0.14],[2500,"highpass",0.06*S.sf,0.09]].forEach(function(c){
     const src=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();
     src.buffer=noiseBuf;f.type=c[1];f.frequency.value=c[0];
     g.gain.setValueAtTime(0.0001,t);
@@ -488,8 +628,8 @@ function winSound(){
 function ambientTick(dt){
   if(!AC||!cricG)return;
   critT-=dt;birdT-=dt;owlT-=dt;
-  if(critT<=0){critT=0.4;const nF=1-dayV;cricG.gain.setTargetAtTime(0.03*nF*nF*(1-0.85*wx.rain),AC.currentTime,0.8);}
-  if(birdT<=0){birdT=1.5+Math.random()*4;if(dayV>0.15&&wx.rain<0.4&&Math.random()<dayV)birdSound(dayV);}
+  if(critT<=0){critT=0.4;const nF=1-dayV;cricG.gain.setTargetAtTime(0.03*nF*nF*(1-0.85*wx.rain)*S.cr,AC.currentTime,0.8);}
+  if(birdT<=0){birdT=(1.5+Math.random()*4)*(S.bt||1);if(dayV>0.15&&wx.rain<0.4&&Math.random()<dayV*S.bd)birdSound(dayV);}
   if(owlT<=0){owlT=10+Math.random()*14;if(1-dayV>0.6)owlSound(1-dayV);}
 }
 
@@ -504,7 +644,7 @@ function hopSound(v){
 
 // Ovozni yoqish/o’chirish va umumiy balandlikni qo’llash (ikkala tugma va slayder uchun)
 function applyMute(){
-  const tx=muted?"Ovoz: o’chiq":"Ovoz: yoqilgan";
+  const tx=tr(muted?"snd_off":"snd_on");
   sndBtn.textContent=tx;mmute.textContent=tx;
   sndBtn.setAttribute("aria-pressed",String(!muted));
   mmute.setAttribute("aria-pressed",String(!muted));
@@ -657,7 +797,7 @@ function upFox(a,dt,t,dP){
     if(a.tm<=0||dP<9||!want){a.st="leave";a.tm=7;}
   }else{
     a.th=Math.atan2(a.x-player.x,a.z-player.z)+a.bias;sp=2.6;
-    if(a.tm<=0||dP>CULL){a.st="hide";a.tm=18+Math.random()*20;a.vis=0;a.g.visible=false;return;}
+    if(a.tm<=0||dP>CULL){a.st="hide";a.tm=(18+Math.random()*20)*(S.fa||1);a.vis=0;a.g.visible=false;return;}
   }
   a.h+=W2(a.th-a.h)*Math.min(1,dt*(sp>0?5:2.5));
   if(sp>0){moveA(a,dt,sp);a.ph+=dt*8;}
@@ -704,7 +844,7 @@ function upW(a,dt,t){
   a.g.position.set(a.x,y,a.z);a.g.rotation.y=a.h;
 }
 function upB(b,dt,time){
-  const tg=(dayV>0.45&&wx.rain<0.5)?1:0;
+  const tg=(dayV>0.45&&wx.rain<0.5&&S.bd>0.3)?1:0;
   b.vis+=(tg-b.vis)*Math.min(1,dt*1.2);
   if(Math.abs(tg-b.vis)<0.02)b.vis=tg;
   if(b.vis<=0){b.g.visible=false;return;}
@@ -769,7 +909,7 @@ for(let q=0;q<2;q++){
 }
 let flyVis=0;
 function upF(dt,time){
-  flyVis+=(((dayV<0.3&&wx.rain<0.5)?1:0)-flyVis)*Math.min(1,dt*0.8);
+  flyVis+=(((dayV<0.3&&wx.rain<0.5&&S.fl!==0)?1:0)-flyVis)*Math.min(1,dt*0.8);
   fsets.forEach(function(s){
     if(flyVis<0.02){s.pts.visible=false;return;}
     s.pts.visible=true;
@@ -800,7 +940,7 @@ function updateAnimals(dt,now){
   }
   for(let i=0;i<birds.length;i++){
     const b=birds[i];
-    if(b.i>=Q.bird){if(b.vis>0||b.g.visible){b.vis=0;b.g.visible=false;}continue;}
+    if(b.i>=Math.min(QUAL.high.bird,Math.round(Q.bird*(S.bn||1)))){if(b.vis>0||b.g.visible){b.vis=0;b.g.visible=false;}continue;}
     upB(b,dt,time);
   }
   upO(owl,dt,t);
@@ -818,9 +958,9 @@ function applyQuality(q){
   TN=Math.max(1,Math.round(trees.length*Q.tree));
   for(let i=0;i<treeMeshes.length;i++)treeMeshes[i].count=TN;
   CULL=Q.cull;fogMul=Q.fog;
-  QN.d=Q.deer;QN.r=Q.rab;QN.f=Q.fox;
+  QN.d=Math.min(QUAL.high.deer,Math.round(Q.deer*S.an));QN.r=Math.min(QUAL.high.rab,Math.round(Q.rab*(S.rn||S.an)));QN.f=Math.min(QUAL.high.fox,Math.max(1,Math.round(Q.fox*(S.fx||S.an))));
   sg.setDrawRange(0,Q.stars);
-  flN=Q.fly;
+  flN=Math.min(20,Math.round(Q.fly*(S.ff||1)));
   fsets.forEach(function(s){s.pts.geometry.setDrawRange(0,flN);});
   dirty=true;
 }
@@ -830,16 +970,17 @@ applyQuality(quality);
 // Yangi holat qo’shish uchun: WX ga yangi qator (masalan storm yoki mist) va WAUTO ga navbat qo’shing.
 // fog = tuman zichligi ko’paytmasi, light = yorug’lik ko’paytmasi, grey = osmonning kulrang tusi, rain = yomg’ir kuchi (0..1)
 const WX={
-  clear:{fog:1,light:1,grey:0,rain:0,label:""},
-  rain:{fog:1.4,light:0.74,grey:0.5,rain:1,label:" · Yomg’ir"}
+  clear:{fog:1,light:1,grey:0,rain:0,snow:0},
+  snow:{fog:1.25,light:0.85,grey:0.3,rain:0,snow:1},
+  rain:{fog:1.4,light:0.74,grey:0.5,rain:1,snow:0}
   // storm:{fog:1.6,light:0.6,grey:0.7,rain:1,label:" · Momaqaldiroq"},
   // mist:{fog:2.4,light:0.85,grey:0.3,rain:0,label:" · Qalin tuman"}
 };
 // Har holat qancha davom etadi (soniya) va keyin qaysi holat keladi
-const WAUTO={clear:{next:"rain",dur:[120,240]},rain:{next:"clear",dur:[60,120]}};
+let WAUTO={clear:{next:"rain",dur:[120,240]},rain:{next:"clear",dur:[60,120]}};
 const WTRANS=8; // holatlar orasida o’tish (soniya)
-const wx={fog:1,light:1,grey:0,rain:0}; // hozirgi (silliq) qiymatlar
-const wFrom={fog:1,light:1,grey:0,rain:0};
+const wx={fog:1,light:1,grey:0,rain:0,snow:0}; // hozirgi (silliq) qiymatlar
+const wFrom={fog:1,light:1,grey:0,rain:0,snow:0};
 let wName="clear",wP=1,wTimer=120+Math.random()*120,wLbl="";
 function setWeather(name){
   if(!WX[name]||name===wName)return;
@@ -848,7 +989,7 @@ function setWeather(name){
   const a=WAUTO[name];wTimer=a?a.dur[0]+Math.random()*(a.dur[1]-a.dur[0]):1e9;
 }
 addEventListener("keydown",function(e){ // R — sinash uchun: yomg’irni qo’lda yoqish/o’chirish
-  if(e.code==="KeyR"&&running&&!paused&&!e.repeat)setWeather(wName==="rain"?"clear":"rain");
+  if(e.code==="KeyR"&&running&&!paused&&!e.repeat)setWeather(wName==="clear"?S.pre:"clear");
 });
 // Yomg’ir tomchilari: chiziqchalar, o’yinchi atrofida (o’yinchi bilan birga ko’chadi)
 const RMAX=380,RR=9,RH=10,RVX=1.2,RVY=16,RVZ=0.6;
@@ -877,10 +1018,12 @@ function applyWeather(dt){
     const c=scene.background,l=0.299*c.r+0.587*c.g+0.114*c.b;
     wTmp.setRGB(l*0.7,l*0.75,l*0.82);
     c.lerp(wTmp,g);
+    if(S.tintA){wTmp.setHex(S.tint).multiplyScalar(Math.min(1,l*1.6));c.lerp(wTmp,S.tintA);}
     scene.fog.color.copy(c);
-    scene.fog.density*=wx.fog;
-    hemi.intensity*=wx.light;
-    sunL.intensity*=wx.light;moonL.intensity*=wx.light;
+    scene.fog.density*=wx.fog*S.fog*(1+(S.mf||0)*Math.max(0,1-Math.abs(dayV-0.4)*3.3));
+    hemi.intensity*=wx.light*S.light;
+    sunL.intensity*=wx.light*(S.sun||1);moonL.intensity*=wx.light;
+    if(S.warm){wTmp.setHex(0xffc878);sunL.color.lerp(wTmp,S.warm*dayV);wTmp.setHex(0xfff0d0);hemi.color.lerp(wTmp,S.warm*0.6*dayV);}
     lampBase+=0.12*r;
     stars.material.opacity*=(1-0.85*r);
     sunM.material.opacity=moonM.material.opacity=1-0.92*r;
@@ -914,7 +1057,7 @@ function applyWeather(dt){
   // yomg’ir tovushi: silliq kuchayadi va susayadi
   if(rainG&&AC)rainG.gain.setTargetAtTime(0.12*r,AC.currentTime,0.5);
   // ekrandagi yozuv
-  const lbl=todTxt+(r>0.5?WX.rain.label:"");
+  const lbl=tr(todTxt)+(S.id==="summer"?"":" · "+tr("season_"+S.id))+(r>0.5?" · "+tr("w_rain"):(wx.snow>0.5?" · "+tr("w_snow"):""));
   if(lbl!==wLbl){wLbl=lbl;todEl.textContent=lbl;}
 }
 let rainG=null;
@@ -929,6 +1072,172 @@ function startRain(){
   mk("lowpass",450,0.9,1.1);    // yumshoq past “taglik” ovozi
 }
 /* ---------- OB-HAVO TUGADI ---------- */
+/* ---------- FASLLAR: ishlash qismi ---------- */
+const LMAX=300,LR=10,LH=9;
+const ld=new Float32Array(LMAX*3),lph=new Float32Array(LMAX),lpos=new Float32Array(LMAX*3),lcol=new Float32Array(LMAX*3);
+const lgeo=new T.BufferGeometry();
+lgeo.setAttribute("position",new T.BufferAttribute(lpos,3));
+lgeo.setAttribute("color",new T.BufferAttribute(lcol,3));
+const leafP=new T.Points(lgeo,new T.PointsMaterial({size:6,sizeAttenuation:false,vertexColors:true,transparent:true,opacity:0.95,depthWrite:false}));
+leafP.frustumCulled=false;leafP.visible=false;scene.add(leafP);
+for(let i=0;i<LMAX;i++){ld[i*3]=(Math.random()*2-1)*LR;ld[i*3+1]=Math.random()*LH;ld[i*3+2]=(Math.random()*2-1)*LR;lph[i]=Math.random()*6.28;}
+const sCol=new T.Color();
+// yumshoq dumaloq qor donasi
+const snowTex=(function(){
+  const c=document.createElement("canvas");c.width=c.height=32;
+  const x=c.getContext("2d"),g=x.createRadialGradient(16,16,0,16,16,16);
+  g.addColorStop(0,"rgba(255,255,255,1)");g.addColorStop(0.5,"rgba(255,255,255,0.7)");g.addColorStop(1,"rgba(255,255,255,0)");
+  x.fillStyle=g;x.fillRect(0,0,32,32);
+  return new T.CanvasTexture(c);
+})();
+function updateFall(dt){
+  const amt=S.fq==="snow"?Math.max(wx.snow,S.snow0):S.leaf;
+  const n=amt>0.03?Math.min(LMAX,Math.round(Q[S.fq||"leaf"]*amt)):0;
+  if(n<1){leafP.visible=false;return;}
+  const tm=performance.now()*0.001,fv=S.fv||1;
+  for(let i=0;i<n;i++){
+    let x=ld[i*3]+(0.5+Math.sin(tm*0.9+lph[i])*0.7)*dt*fv,y=ld[i*3+1]-(0.7+0.5*Math.sin(lph[i]*3))*dt*fv,z=ld[i*3+2]+(0.3+Math.cos(tm*0.7+lph[i])*0.6)*dt*fv;
+    const dx=x-player.x,dz=z-player.z;
+    if(dx>LR)x-=2*LR;else if(dx<-LR)x+=2*LR;
+    if(dz>LR)z-=2*LR;else if(dz<-LR)z+=2*LR;
+    if(y<0)y+=LH;
+    ld[i*3]=x;ld[i*3+1]=y;ld[i*3+2]=z;
+    lpos[i*3]=x;lpos[i*3+1]=y;lpos[i*3+2]=z;
+  }
+  lgeo.setDrawRange(0,n);
+  lgeo.attributes.position.needsUpdate=true;
+  leafP.visible=true;
+}
+// fasl tovushi: barglar shitirlashi va sovuq shamol (yozda ovozi 0)
+let seaRG=null,seaWG=null;
+function startSeasonSnd(){
+  const mk=function(type,freq,q,lfoHz,off){
+    const s=AC.createBufferSource(),f=AC.createBiquadFilter(),m=AC.createGain(),lv=AC.createGain(),o=AC.createOscillator(),od=AC.createGain();
+    s.buffer=noiseBuf;s.loop=true;f.type=type;f.frequency.value=freq;f.Q.value=q;
+    m.gain.value=0.5;o.frequency.value=lfoHz;od.gain.value=0.5;lv.gain.value=0;
+    o.connect(od);od.connect(m.gain);s.connect(f);f.connect(m);m.connect(lv);lv.connect(master);
+    s.start(0,off);o.start();return lv;
+  };
+  seaRG=mk("highpass",3200,0.7,0.23,0.5);
+  seaWG=mk("bandpass",650,0.6,0.09,1.4);
+  applySeasonSnd();
+}
+function applySeasonSnd(){
+  if(!AC||!seaRG)return;
+  seaRG.gain.setTargetAtTime(S.rust,AC.currentTime,0.8);
+  seaWG.gain.setTargetAtTime(S.cold,AC.currentTime,0.8);
+}
+function applySeason(id,initial){
+  if(!SEA[id])return;
+  S=SEA[id];
+  ground.material.color.setHex(S.ground);
+  const fo=treeMeshes[1];
+  fo.material.color.setHex(0xffffff);
+  for(let i=0;i<trees.length;i++){
+    sCol.setHex(S.pal[(i*7+((i*2654435761)>>>28))%S.pal.length]);
+    if(S.pal.length>1)sCol.multiplyScalar(0.85+((i*37)%10)/33);
+    fo.setColorAt(i,sCol);
+  }
+  fo.instanceColor.needsUpdate=true;
+  stoneMat.color.setHex(S.stone);
+  stones.forEach(function(s){s.s.scale.setScalar(S.ss);});
+  ring.material.color.setHex(S.ring);
+  for(let i=0;i<LMAX;i++){sCol.setHex(S.leafCols.length?S.leafCols[i%S.leafCols.length]:0xffffff);lcol[i*3]=sCol.r;lcol[i*3+1]=sCol.g;lcol[i*3+2]=sCol.b;}
+  lgeo.attributes.color.needsUpdate=true;
+  leafP.material.size=S.fs||6;leafP.material.opacity=S.fo||0.95;
+  leafP.material.map=(S.fq==="snow"||S.round)?snowTex:null;leafP.material.needsUpdate=true;
+  WAUTO=S.wa;
+  wName="clear";wP=1;for(const k in wx){wx[k]=WX.clear[k];wFrom[k]=wx[k];}
+  const a=WAUTO.clear;wTimer=a.dur[0]+Math.random()*(a.dur[1]-a.dur[0]);
+  applySeasonSnd();
+  if(!initial)applyQuality(quality);
+}
+// BAHOR: o’t va gullar, kapalaklar, mayda hasharotlar
+const FMAX=260,GMAX=320,BFMAX=10,BUGMAX=22;
+const grassM=new T.InstancedMesh(new T.ConeGeometry(0.06,0.4,4),new T.MeshLambertMaterial({color:0xffffff}),GMAX);
+const flowM=new T.InstancedMesh(new T.IcosahedronGeometry(0.09,0),new T.MeshLambertMaterial({color:0xffffff}),FMAX);
+grassM.frustumCulled=false;flowM.frustumCulled=false;grassM.visible=false;flowM.visible=false;
+(function(){
+  const fc=[0xffffff,0xffe14a,0xff8fc8],c=new T.Color();
+  for(let i=0;i<GMAX;i++){
+    const x=(Math.random()-0.5)*150,z=(Math.random()-0.5)*150,s=0.7+Math.random()*0.8;
+    dummy.position.set(x,0.2*s,z);dummy.scale.set(s,s,s);dummy.rotation.set(0,Math.random()*6,0);dummy.updateMatrix();
+    grassM.setMatrixAt(i,dummy.matrix);
+    c.setHSL(0.27+Math.random()*0.05,0.5,0.32+Math.random()*0.12);grassM.setColorAt(i,c);
+    if(i<FMAX){
+      dummy.position.set(x+0.07,0.42*s,z);dummy.updateMatrix();
+      flowM.setMatrixAt(i,dummy.matrix);c.setHex(fc[i%3]);flowM.setColorAt(i,c);
+    }
+  }
+})();
+scene.add(grassM);scene.add(flowM);
+const wingG=new T.BufferGeometry();
+wingG.setAttribute("position",new T.BufferAttribute(new Float32Array([0,0,0, 0.1,0,0.14, -0.06,0,0.14]),3));
+const bfs=[],bfc=new Float32Array(BFMAX*2),bwc=[0xffd1e8,0xfff1a8,0xffffff,0xb9e4ff,0xffb36b];
+function bfNear(arr,i){const a=Math.random()*6.28,r=6+Math.random()*14;arr[i*2]=player.x+Math.cos(a)*r;arr[i*2+1]=player.z+Math.sin(a)*r;}
+for(let i=0;i<BFMAX;i++){
+  const g=new T.Group(),m=new T.MeshBasicMaterial({color:bwc[i%bwc.length],side:T.DoubleSide});
+  const wr=new T.Mesh(wingG,m),wl=new T.Mesh(wingG,m);wl.scale.z=-1;
+  g.add(wr);g.add(wl);g.visible=false;scene.add(g);
+  bfs.push({g:g,wr:wr,wl:wl,ph:Math.random()*6.28,sp:0.7+Math.random()*0.6,r:2+Math.random()*3});
+  bfNear(bfc,i);
+}
+const bugPos=new Float32Array(BUGMAX*3),bugC=new Float32Array(BUGMAX*2),bugGeo=new T.BufferGeometry();
+bugGeo.setAttribute("position",new T.BufferAttribute(bugPos,3));
+const bugP=new T.Points(bugGeo,new T.PointsMaterial({color:0xfff3a0,size:3,sizeAttenuation:false,map:snowTex,transparent:true,opacity:0.85,depthWrite:false}));
+bugP.frustumCulled=false;bugP.visible=false;scene.add(bugP);
+for(let i=0;i<BUGMAX;i++)bfNear(bugC,i);
+function updateSpring(dt){
+  const on=!!S.flw;
+  grassM.visible=flowM.visible=on;
+  if(!on){for(let i=0;i<BFMAX;i++)bfs[i].g.visible=false;if(!S.bg){bugP.visible=false;return;}}
+  grassM.count=Math.min(GMAX,Q.gr);flowM.count=Math.min(FMAX,Q.flw);
+  const show=dayV>0.35&&wx.rain<0.5,tm=performance.now()*0.001;
+  for(let i=0;i<BFMAX;i++){
+    const b=bfs[i];
+    if(!on||!show||i>=Q.bf){b.g.visible=false;continue;}
+    const dx0=bfc[i*2]-player.x,dz0=bfc[i*2+1]-player.z;
+    if(dx0*dx0+dz0*dz0>784)bfNear(bfc,i);
+    const a1=tm*0.35*b.sp+b.ph,a2=tm*0.5*b.sp+b.ph*1.3,vx=-Math.sin(a1)*0.35*b.sp*b.r,vz=Math.cos(a2)*0.5*b.sp*b.r;
+    b.g.position.set(bfc[i*2]+Math.cos(a1)*b.r,1.1+Math.sin(tm*1.1*b.sp+b.ph)*0.5,bfc[i*2+1]+Math.sin(a2)*b.r);
+    b.g.rotation.y=Math.atan2(-vz,vx);
+    const f=Math.sin(tm*16+b.ph)*0.8+0.3;
+    b.wr.rotation.x=-f;b.wl.rotation.x=f;
+    b.g.visible=true;
+  }
+  const nb=Math.min(BUGMAX,Math.round(Q.bug*(S.bg||1)));
+  for(let i=0;i<nb;i++){
+    const dx0=bugC[i*2]-player.x,dz0=bugC[i*2+1]-player.z;
+    if(dx0*dx0+dz0*dz0>784)bfNear(bugC,i);
+    const p=i*1.7,r=1+(i%4)*0.5;
+    bugPos[i*3]=bugC[i*2]+Math.cos(tm*0.6+p)*r+Math.sin(tm*2.3+p)*0.15;
+    bugPos[i*3+1]=0.7+(i%5)*0.25+Math.sin(tm*0.9+p*2)*0.3;
+    bugPos[i*3+2]=bugC[i*2+1]+Math.sin(tm*0.8+p)*r+Math.cos(tm*2.7+p)*0.15;
+  }
+  bugGeo.setDrawRange(0,nb);bugGeo.attributes.position.needsUpdate=true;
+  bugP.visible=dayV>0.2&&wx.rain<0.5;
+}
+// YOZ: daraxtlar orasidan tushuvchi nur dog’lari (yerdagi yumshoq yaltiroq yoritilgan joylar)
+const SMAX=40;
+const spotMat=new T.MeshBasicMaterial({color:0xffe9a8,transparent:true,opacity:0,blending:T.AdditiveBlending,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2});
+const spotM=new T.InstancedMesh(new T.CircleGeometry(1,10),spotMat,SMAX);
+spotM.frustumCulled=false;spotM.visible=false;
+for(let i=0;i<SMAX;i++){
+  const s=0.7+Math.random()*1.1;
+  dummy.position.set((Math.random()-0.5)*130,0.06,(Math.random()-0.5)*130);
+  dummy.scale.set(s*(0.7+Math.random()*0.8),s,1);
+  dummy.rotation.set(-Math.PI/2,0,Math.random()*6);
+  dummy.updateMatrix();spotM.setMatrixAt(i,dummy.matrix);
+}
+scene.add(spotM);
+function updateSpots(){
+  const o=S.spots?0.2*dayV*(1-wx.rain)*(0.85+0.15*Math.sin(performance.now()*0.0006)):0;
+  if(o<0.01){spotM.visible=false;return;}
+  spotMat.opacity=o;spotM.count=Math.min(SMAX,Q.spot);spotM.visible=true;
+}
+applySeason(S.id,true);
+/* ---------- FASLLAR TUGADI ---------- */
+
 
 /* ---------- KOMPAS ---------- */
 // Shimol = o’yin dunyosidagi -z tomon. Disk qarash yo’nalishiga qarab aylanadi,
@@ -1019,24 +1328,54 @@ const sensEl=document.getElementById("sens"),sensv=document.getElementById("sens
 const qbtns=Array.prototype.slice.call(menu.querySelectorAll("[data-q]")),qdesc=document.getElementById("qdesc");
 const closeB=document.getElementById("mclose"),restartB=document.getElementById("mrestart");
 const toast=document.getElementById("toast");
-const QDESC={
-  low:"Kamroq daraxt va hayvon, tuman yaqinroq. Sekin telefonlar uchun.",
-  mid:"Muvozanatli sifat. Ko’p telefonlar uchun mos.",
-  high:"Eng chiroyli: ko’p daraxt va hayvon, uzoqroq ko’rinish."
-};
 let lastFocus=null,rsT=0,toastT=0;
+const sbox=document.getElementById("sbtns"),sbtns=[];
+Object.keys(SEA).forEach(function(id){
+  const b=document.createElement("button");b.type="button";b.textContent=tr("season_"+id);
+  b.setAttribute("data-s",id);b.setAttribute("aria-pressed","false");
+  b.onclick=function(){applySeason(id);st.season=id;saveNow();syncMenu();};
+  sbox.appendChild(b);sbtns.push(b);
+});
+sbox.style.gridTemplateColumns="repeat("+sbtns.length+",1fr)";
+const lbtns=[];
+["langs1","langs2"].forEach(function(cid){
+  const box=document.getElementById(cid);
+  Object.keys(TILLAR).forEach(function(code){
+    const b=document.createElement("button");b.type="button";b.textContent=TILLAR[code].name;
+    b.setAttribute("lang",code);b.setAttribute("data-l",code);b.setAttribute("aria-pressed","false");
+    b.onclick=function(){setLang(code);};
+    box.appendChild(b);lbtns.push(b);
+  });
+});
+function setLang(code){if(!TILLAR[code])return;LANG=code;st.lang=code;saveNow();applyLang();}
+// butun o’yin yozuvlarini tanlangan tilda qayta yozadi (o’yin to’xtamaydi)
+function applyLang(){
+  document.documentElement.lang=LANG;
+  document.title=tr("title");
+  const am=document.querySelector('meta[name="apple-mobile-web-app-title"]');if(am)am.setAttribute("content",tr("title"));
+  document.querySelectorAll("[data-i]").forEach(function(el){el.textContent=tr(el.getAttribute("data-i"));});
+  document.querySelectorAll("[data-ia]").forEach(function(el){el.setAttribute("aria-label",tr(el.getAttribute("data-ia")));});
+  sbtns.forEach(function(b){b.textContent=tr("season_"+b.getAttribute("data-s"));});
+  lbtns.forEach(function(b){b.setAttribute("aria-pressed",String(b.getAttribute("data-l")===LANG));});
+  countEl.textContent=tr("count",{n:found});
+  hintTxt="";setHint(hintKey,hintVars);
+  wLbl="";
+  applyMute();resetRestart();syncMenu();
+  dirty=true;
+}
 let fpsT=0,fpsF=0,fpsWarm=true,fpsDone=false;
 
 function syncMenu(){
   volEl.value=st.vol;volv.textContent=st.vol+"%";
   sensEl.value=st.sens;sensv.textContent=st.sens+"%";
   qbtns.forEach(function(b){b.setAttribute("aria-pressed",String(b.getAttribute("data-q")===quality));});
-  qdesc.textContent=QDESC[quality];
+  qdesc.textContent=tr("qd_"+quality);
+  sbtns.forEach(function(b){b.setAttribute("aria-pressed",String(b.getAttribute("data-s")===S.id));});
 }
 function resetRestart(){
   clearTimeout(rsT);
   restartB.setAttribute("data-arm","");
-  restartB.textContent="O’yinni qayta boshlash";
+  restartB.textContent=tr("m_restart");
 }
 function hideToast(){clearTimeout(toastT);toast.classList.add("hide");}
 function openMenu(from){
@@ -1095,7 +1434,7 @@ qbtns.forEach(function(b){b.onclick=function(){setQuality(b.getAttribute("data-q
 restartB.onclick=function(){
   if(restartB.getAttribute("data-arm")==="1"){saveNow();location.reload();return;}
   restartB.setAttribute("data-arm","1");
-  restartB.textContent="Ishonchingiz komilmi? Yana bosing";
+  restartB.textContent=tr("m_sure");
   rsT=setTimeout(resetRestart,4000);
 };
 document.getElementById("tyes").onclick=function(){setQuality("low");};
@@ -1137,7 +1476,7 @@ function tick(now){
     }
   }
   if(running){
-    tcyc+=dt/CYCLE;
+    tcyc+=dt/CYCLE*(1-(S.dl||0)*(dayV-0.5)*2);
     ambientTick(dt);
     let f=(keys.KeyW||keys.ArrowUp?1:0)-(keys.KeyS||keys.ArrowDown?1:0)-jy;
     let s=(keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0)+jx;
@@ -1163,15 +1502,15 @@ function tick(now){
       nearest=Math.min(nearest,d);
       if(d<1.4){
         st2.got=true;st2.g.visible=false;found++;
-        countEl.textContent="Toshlar: "+found+"/5";
+        countEl.textContent=tr("count",{n:found});
         stoneSound(found);
         if(found===5){gate.visible=true;gateSound(0.7);}
       }
     }
-    if(found<5){setHint("Eng yaqin tosh: "+Math.round(nearest)+" m");}
+    if(found<5){setHint("h_stone",{d:Math.round(nearest)});}
     else{
       const gd=Math.hypot(player.x-gate.position.x,player.z-gate.position.z);
-      setHint("Darvoza ochildi: "+Math.round(gd)+" m");
+      setHint("h_gate",{d:Math.round(gd)});
       if(gd<2.2){running=false;winSound();document.getElementById("win").classList.remove("hide");}
     }
   }
@@ -1182,11 +1521,15 @@ function tick(now){
   lamp.position.copy(player);
   applyTime(tcyc%1);
   applyWeather(dt);
+  updateFall(dt);
+  updateSpring(dt);
+  updateSpots();
   updateAnimals(dt,now);
   updateCompass();
   lamp.intensity=lampBase*(1+Math.sin(now*0.01)*0.045);
   renderer.render(scene,cam);
 }
+applyLang();
 requestAnimationFrame(tick);
 })();
 </script>
